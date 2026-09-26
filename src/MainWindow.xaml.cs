@@ -42,6 +42,9 @@ namespace RSTGameTranslation
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
 
         [DllImport("user32.dll")]
@@ -50,6 +53,7 @@ namespace RSTGameTranslation
         // ShowWindow commands
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
+        private const int SW_RESTORE = 9;
         public string Windows_Version = "Windows 10";
 
         // Constants for disabling the close button
@@ -1695,6 +1699,9 @@ namespace RSTGameTranslation
 
                     // One-click startup: auto-enable whatever the user ticked in Settings.
                     await ApplyStartAutoEnablesAsync();
+
+                    // Bring the chosen game window to the front so the user can play right away.
+                    FocusCapturedWindow();
                 }
                 else
                 {
@@ -3861,6 +3868,20 @@ namespace RSTGameTranslation
         /// Sets up window capture for the given window (WGC + UI + remembers it for next session).
         /// Shared by manual selection (announce=true) and automatic re-acquire (announce=false).
         /// </summary>
+        // Bring the captured game window to the foreground (called when translation starts).
+        private void FocusCapturedWindow()
+        {
+            try
+            {
+                if (isCapturingWindow && capturedWindowHandle != IntPtr.Zero)
+                {
+                    ShowWindow(capturedWindowHandle, SW_RESTORE);
+                    SetForegroundWindow(capturedWindowHandle);
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"FocusCapturedWindow failed: {ex.Message}"); }
+        }
+
         private void AcquireWindow(IntPtr windowHandle, string windowTitle, bool announce)
         {
             if (windowHandle == IntPtr.Zero) return;
@@ -3959,8 +3980,15 @@ namespace RSTGameTranslation
                 {
                     savedTranslationAreas = restored;
                     currentAreaIndex = restored.Count - 1;
+                    selectedTranslationArea = savedTranslationAreas[currentAreaIndex];
                     hasSelectedTranslationArea = true;
-                    UpdateCaptureRect();
+
+                    // Mirror what a fresh area selection does so the overlay border shows immediately
+                    // (previously the restored area required re-selecting before the red border appeared).
+                    UpdateCustomCaptureRect();
+                    try { MonitorWindow.Instance.RefreshOverlays(); } catch { }
+                    try { selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); } catch { }
+
                     Console.WriteLine($"Restored {restored.Count} session area(s)");
                 }
             }
