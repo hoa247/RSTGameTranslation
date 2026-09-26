@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RSTGameTranslation
@@ -10,6 +11,16 @@ namespace RSTGameTranslation
     public class GeminiTranslationService : ITranslationService
     {
         private static readonly HttpClient _httpClient = new HttpClient();
+
+        // Token source for the in-flight request so the user can cancel a slow/hung call.
+        private static CancellationTokenSource? _currentCts;
+
+        /// <summary>Cancels the translation request currently in flight (if any).</summary>
+        public static void CancelCurrent()
+        {
+            try { _currentCts?.Cancel(); } catch { }
+        }
+
         private static int _consecutiveFailures = 0;
         private static int _retryCount = 0;
         private static readonly object _keySwitchLock = new object();
@@ -149,7 +160,8 @@ namespace RSTGameTranslation
                 // Get model from config
                 string model = ConfigManager.Instance.GetGeminiModel();
                 string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
-                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                _currentCts = new CancellationTokenSource();
+                HttpResponseMessage response = await _httpClient.PostAsync(url, content, _currentCts.Token);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -290,6 +302,12 @@ namespace RSTGameTranslation
                     await Task.Delay(delayMS);
                     return null;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // User cancelled the in-flight request — not an error, no popup.
+                Console.WriteLine("Translation request cancelled by user");
+                return null;
             }
             catch (Exception ex)
             {

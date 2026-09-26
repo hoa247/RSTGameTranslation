@@ -717,6 +717,11 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Retry Translation");
         }
 
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            GeminiTranslationService.CancelCurrent();
+        }
+
         private void ShowAreaButton_Click(object sender, RoutedEventArgs e)
         {
             KeyboardShortcuts.InvokeFunctionFromClick("Show Area");

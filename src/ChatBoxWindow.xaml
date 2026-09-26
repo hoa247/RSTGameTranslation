@@ -188,6 +188,11 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="RetryButton_Click"
                         ToolTip="Dịch lại màn hiện tại (khi lỗi mạng / dịch sai)"/>
+                <Button x:Name="cbCancelButton" Content="✕" Width="30" Height="28"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource HeaderButtonStyle}"
+                        Click="CancelButton_Click"
+                        ToolTip="Hủy request đang gửi (khi mạng lâu / treo)"/>
                 <Button x:Name="cbShowAreaButton" Content="▦" Width="30" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
