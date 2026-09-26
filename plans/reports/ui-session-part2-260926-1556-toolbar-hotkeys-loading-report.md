@@ -7,6 +7,12 @@ Tất cả **compile 0 lỗi** (`dotnet build RST.csproj`). Build/chạy: `build
 
 ## Commit phần 2 (mới → cũ)
 ```
+9f9bae3 fix: combine all blocks of one translation pass into a single chatbox entry (show-only-latest shows full latest translation)
+51f43e8 fix: auto-clear timer now respects the 'auto-clear history' checkbox (off = never clears)
+52e60c5 style: lower chatbox min size so it can be shrunk freely (header wraps)
+2315061 feat: chatbox text options — alignment, padding, entry spacing, show-only-latest (auto-clear previous)
+38a7374 chore: rename build-and-run.bat to zbuild-and-run.bat
+705de74 style: taller settings window + larger hotkey list to reduce scrolling
 53b7192 feat: per-function enable/disable in settings (hotkey unregistered + toolbar button greyed when off)
 b9fe562 feat: loading overlay (spinner) covers old text while translating; reveals result on arrival
 c297f0b feat: bottom-right translating/stopped status indicator (dot + colored text) in chatbox
@@ -58,6 +64,18 @@ d5f4b24 feat: validate capture source before Start; ensure Esc cancels area sele
 - DRY: gộp `_tagToFunction` (ChatBoxWindow) dùng cho cả dispatch proxy button lẫn greying (thay cho `_proxyTagToFunction` cũ).
 - **Lưu ý:** greying chỉ áp cho thanh nút ChatBox; nút ở màn hình chính (Overlay/Cài đặt...) chưa greyed (là click chủ động, ít bấm nhầm).
 
+## 6. Tùy chọn văn bản ChatBox + fix hiển thị (`2315061`, `51f43e8`, `9f9bae3`, `52e60c5`, `705de74`)
+- **Cài đặt văn bản mới** (ChatBox → Tùy chọn → nhóm "Cài đặt văn bản"), áp dụng **live**:
+  - Căn lề chữ (Trái/Giữa/Phải) → `para.TextAlignment`.
+  - Lề trong (padding) slider → `chatHistoryText.Padding`.
+  - Khoảng cách câu slider → margin dưới mỗi đoạn.
+  - **Chỉ hiện câu mới nhất** (checkbox) → chỉ render entry mới nhất.
+  - Config: `chatbox_text_alignment/padding/entry_spacing/show_only_latest`. Guard `_isLoadingOptions` khi nạp.
+- **Fix auto-clear** (`51f43e8`): `AutoClearTimer_Tick` trước đây **KHÔNG** kiểm tra checkbox → tự xóa dù đã bỏ tick. Nay tôn trọng `IsAutoClearChatboxHistoryEnabled()` (tắt = không bao giờ xóa).
+- **Fix "gộp 1 lần dịch = 1 entry"** (`9f9bae3`): `AddTranslatedTextObjectsToChatBox` trước bắn **mỗi block 1 event → nhiều entry** (phụ đề 3 dòng = 3 entry) → "chỉ hiện câu mới nhất" ra mảnh cuối. Nay **gộp tất cả block của 1 lần dịch (trên→dưới) thành 1 entry** (nối bằng space). Overlay game vẫn vẽ từng block riêng; chỉ ChatBox/history/TTS gộp.
+- **ChatBox min size** (`52e60c5`): `MinWidth 940→200`, thêm `MinHeight 120` → kéo nhỏ thoải mái (header đã wrap).
+- **Settings cao hơn** (`705de74`): `Height 600→880`, `MinHeight 600/MinWidth 900`, bảng phím tắt `MaxHeight 300→460`.
+
 ---
 
 ## File đã đụng (phần 2)
@@ -71,7 +89,11 @@ d5f4b24 feat: validate capture source before Start; ensure Esc cancels area sele
 - `TranslationAreaSelectorWindow.xaml.cs` — focus grab cho ESC.
 - `ConfigManager.cs` — `disabled_functions` + IsFunctionEnabled/SetFunctionEnabled.
 - `KeyboardShortcuts.cs` — gate register + dispatch theo function on/off.
-- `SettingsWindow.xaml`/`.cs` — nhóm checkbox bật/tắt chức năng + handler.
+- `SettingsWindow.xaml`/`.cs` — nhóm checkbox bật/tắt chức năng + handler; cửa sổ cao hơn.
+- `ChatBoxOptionsWindow.xaml`/`.cs` — nhóm tùy chọn văn bản (căn lề/padding/spacing/chỉ-mới-nhất).
+- `ChatBoxWindow.xaml`/`.cs` — apply tùy chọn văn bản trong UpdateChatHistory, min size, fix auto-clear gate.
+- `Logic.cs` — `AddTranslatedTextObjectsToChatBox` gộp block thành 1 entry.
+- `ConfigManager.cs` — key text options.
 
 ## Cần TEST thực tế
 - [ ] 🧰: ẩn/hiện nút, kéo–thả (có highlight), ⤒/⤓, Lưu → thanh cập nhật; mở lại app còn giữ.
