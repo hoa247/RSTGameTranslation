@@ -1,0 +1,73 @@
+# RST — Notes phiên UI (phần 2, 2026-09-26 chiều)
+
+Nhánh: `fix/region-crop-wgc-scaling` · nối tiếp notes `ui-customization-session-260926-1503-...` (commit `a9890db`).
+Tất cả **compile 0 lỗi** (`dotnet build RST.csproj`). Build/chạy: `build-and-run.bat`.
+
+---
+
+## Commit phần 2 (mới → cũ)
+```
+b9fe562 feat: loading overlay (spinner) covers old text while translating; reveals result on arrival
+c297f0b feat: bottom-right translating/stopped status indicator (dot + colored text) in chatbox
+b11d659 feat: color chatbox Start/Stop button green (translating) / red (stopped)
+784b516 feat: drop-target highlight (accent line + faint fill) in toolbar customize dialog
+8d23bf4 feat: hotkey key picker supports arrows, numpad, F1-F12 and navigation keys
+6615abe fix: restored session shows area border immediately; focus captured window on Start
+d5f4b24 feat: validate capture source before Start; ensure Esc cancels area selection (focus grab)
+87731db feat: add one-off translate action (pick a region, translate once) to chatbox toolbar
+639b5a1 fix: cache all toolbar buttons so re-enabling a hidden button shows it after save
+32d0fde feat: add move-to-top / move-to-bottom buttons in toolbar customize dialog
+742bd8e feat: add all hotkey actions to chatbox toolbar, wrap to multiple rows, move customize to top of options
+```
+
+---
+
+## 1. Thanh nút ChatBox tùy biến — mở rộng
+- **Thêm toàn bộ hành động phím tắt** vào catalog (giờ ~25 mục). 12 cái mới dùng chung handler `HotkeyProxyButton_Click` → map `Tag`→function trong `KeyboardShortcuts.InvokeFunctionFromClick`:
+  toggleChatBox(ChatBox), settings(Setting), log(Log), swapLang(Swap Languages), clearAreas(Clear Areas), clearSelectedArea(Clear Selected Area), excludeRegion(Select Exclude Region), area1..area5(Area 1..5). Mặc định ẩn.
+- **oneOff (🎯 Dịch 1 lần)**: chọn 1 vùng bất kỳ → dịch DUY NHẤT 1 lần, không đổi vùng mặc định. Gọi `MainWindow.StartOneOffAreaSelection()`. Đã đưa vào DEFAULT order (cạnh selectArea).
+- **Wrap nhiều hàng**: header đổi StackPanel → **WrapPanel**, `MinHeight=28` cao tự động; `HeaderBar_SizeChanged` cập nhật lề `chatScrollViewer` + `cbLoadingOverlay` + nút toggle-borders theo chiều cao header (nút nhiều/thu hẹp → tự xuống hàng, nội dung không bị đè).
+- **Hộp thoại 🧰 Tùy chỉnh** (`ChatBoxToolbarSettingsWindow`):
+  - Nút **⤒ lên đầu / ⤓ xuống cuối** mỗi dòng (ngoài kéo–thả).
+  - **Highlight dòng đích khi kéo** (viền accent trên + nền xanh nhạt) — `DragEnter/DragOver/DragLeave` + `SetDropHighlight`.
+  - Đưa mục "🧰 Tùy chỉnh thanh nút" **lên trên cùng** cửa sổ Tùy chọn ChatBox.
+- **BUG FIX quan trọng** (`639b5a1`): `ApplyToolbarLayout` lần đầu xóa nút ẩn khỏi cây → mất tham chiếu, bật lại không hiện. Sửa: **cache `_toolbarButtons` (tất cả nút theo Tag)** ngay lần đầu, dùng lại về sau.
+
+## 2. Phím tắt — chọn được nhiều phím
+- `combineKey2` (SettingsWindow.xaml) thêm: **mũi tên** (LEFT/RIGHT/UP/DOWN), **numpad NUM0–9**, **F1–F12**, SPACE/TAB/ENTER/INSERT/DELETE/HOME/END/PAGEUP/PAGEDOWN, và chữ **S** (trước bị sót).
+- `KeyboardShortcuts._keyCodeMap`: thêm numpad `NUM0..9` → VK `0x60..0x69` (arrows + F-keys đã có sẵn). Không thêm numpad +/−/*/÷ vì ký tự "+" trùng dấu phân tách config "ALT+...".
+
+## 3. Start / vùng chọn
+- **Validate khi Start** (`OnStartButtonToggleClicked`, sau `TryRestoreSession`): nếu `!isCapturingWindow && !hasSelectedTranslationArea` → `ShowFastNotification` "Chưa thể bắt đầu..." và **return** (không chụp full màn).
+- **ESC hủy chọn vùng**: `TranslationAreaSelectorWindow.OnKeyDown` vốn có; thêm `Loaded → Activate()/Focus()/Keyboard.Focus` để chắc chắn nhận phím.
+- **Restore session hiện viền ngay** (`6615abe`): `RestoreSessionAreas` giờ set `selectedTranslationArea`, gọi `UpdateCustomCaptureRect()` + `MonitorWindow.RefreshOverlays()` + nút Chọn vùng xanh (trước phải chọn lại mới hiện viền đỏ).
+- **Focus cửa sổ game khi Start**: thêm P/Invoke `SetForegroundWindow` + `SW_RESTORE`; `FocusCapturedWindow()` gọi cuối nhánh Start.
+
+## 4. Trạng thái dịch (ChatBox) — trực quan
+- Nút **Start/Dừng** đổi màu: 🟢 xanh = đang dịch, 🔴 đỏ = đã dừng (trong `UpdateStartStopButton`, timer 500ms).
+- **Badge góc phải dưới**: chấm + chữ 🟢"Đang dịch" / 🔴"Đã dừng" (`cbStatusIndicator`/`cbStatusDot`/`cbStatusLabel`), nền bo tròn tối cho dễ đọc.
+- **Màn loading khi đang dịch** (`b9fe562`): `cbLoadingOverlay` phủ vùng chat che text cũ + **spinner xoay** (`cbSpinnerRotate` + `_loadingSpinnerTimer` 28ms) + "Đang dịch..." + tên service. Hook: `ShowTranslationStatus(false)`→`ShowLoading`; `HideTranslationStatus()`→`HideLoading` (đã được `OnTranslationWasAdded` gọi, bao cả lỗi/hủy). → clear-then-show, dễ nhận biết dịch xong.
+
+---
+
+## File đã đụng (phần 2)
+- `ChatBoxWindow.xaml` / `.xaml.cs` — WrapPanel header, catalog mở rộng, proxy/oneOff handlers, ApplyToolbarLayout cache, start/stop màu, badge góc, loading overlay + spinner.
+- `ChatBoxToolbarSettingsWindow.xaml` / `.xaml.cs` — nút ⤒/⤓, drop-highlight.
+- `ChatBoxOptionsWindow.xaml` — mục 🧰 lên trên cùng.
+- `ConfigManager.cs` — DEFAULT order thêm oneOff.
+- `KeyboardShortcuts.cs` — numpad vào `_keyCodeMap`.
+- `SettingsWindow.xaml` — combineKey2 thêm phím.
+- `MainWindow.xaml.cs` — validate Start, FocusCapturedWindow + SetForegroundWindow, RestoreSessionAreas refresh overlay.
+- `TranslationAreaSelectorWindow.xaml.cs` — focus grab cho ESC.
+
+## Cần TEST thực tế
+- [ ] 🧰: ẩn/hiện nút, kéo–thả (có highlight), ⤒/⤓, Lưu → thanh cập nhật; mở lại app còn giữ.
+- [ ] Nút nhiều → thu hẹp ChatBox thấy wrap xuống hàng.
+- [ ] Phím tắt: đặt ALT+NUM1 / ALT+UP / ALT+F5 → bấm trong game có ăn.
+- [ ] Start khi chưa có app+vùng → hiện notice, không start. ESC hủy chọn vùng.
+- [ ] Mở app → Start ngay: viền vùng cũ hiện luôn; cửa sổ game nhảy lên trước.
+- [ ] Start/Dừng: nút + badge góc + màn loading spinner hoạt động; dịch xong hiện bản mới.
+
+## Câu hỏi mở
+- Nhãn/tooltip nút + text loading hardcode tiếng Việt (chưa qua LocalizationManager) → đổi ngôn ngữ giao diện sẽ không dịch.
+- Loading overlay hiện áp cho ChatBox; overlay game (MonitorWindow) chưa có kiểu clear-then-show tương tự (nếu cần thì làm thêm).
