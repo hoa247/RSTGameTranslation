@@ -952,7 +952,7 @@ namespace RSTGameTranslation
                         audioServiceButton.Content = enabled ? "Audio STT: On" : "Audio STT: Off";
                     }
 
-                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(95, 95, 95));
+                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(100, 116, 139));
                 });
             }
             catch (Exception ex)
@@ -2692,7 +2692,7 @@ namespace RSTGameTranslation
             {
                 // Hide log window
                 LogWindow.Instance.Hide();
-                logButton.Background = new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple
+                logButton.Background = new SolidColorBrush(Color.FromRgb(8, 145, 178)); // Cyan - hidden
             }
             else
             {
@@ -2700,7 +2700,7 @@ namespace RSTGameTranslation
                 // Set MainWindow as owner to ensure Log window appears above it
                 LogWindow.Instance.Owner = this;
                 LogWindow.Instance.Show();
-                logButton.Background = new SolidColorBrush(Color.FromRgb(176, 69, 153)); // Pink/Red
+                logButton.Background = new SolidColorBrush(Color.FromRgb(14, 116, 144)); // Cyan (darker) - visible
             }
         }
 
@@ -2801,8 +2801,8 @@ namespace RSTGameTranslation
         public void updateLogButtonState(bool isVisible)
         {
             logButton.Background = isVisible
-                ? new SolidColorBrush(Color.FromRgb(176, 69, 153)) // Pink/Red - visible
-                : new SolidColorBrush(Color.FromRgb(153, 69, 176)); // Purple - hidden
+                ? new SolidColorBrush(Color.FromRgb(14, 116, 144)) // Cyan (darker) - visible
+                : new SolidColorBrush(Color.FromRgb(8, 145, 178)); // Cyan - hidden
         }
 
         // Remember the monitor window position

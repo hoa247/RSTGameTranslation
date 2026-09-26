@@ -148,12 +148,12 @@
                         Style="{StaticResource CloseButtonStyle}"
                         Click="CloseButton_Click"
                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Close_Tooltip]}"/>
-                <Button x:Name="fontIncreaseButton" Content="+" Width="28" Height="28" 
+                <Button x:Name="fontIncreaseButton" Content="A+" Width="34" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="FontIncreaseButton_Click"
                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontIncrease_Tooltip]}"/>
-                <Button x:Name="fontDecreaseButton" Content="-" Width="28" Height="28" 
+                <Button x:Name="fontDecreaseButton" Content="A-" Width="34" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="FontDecreaseButton_Click"
@@ -183,27 +183,27 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="StartStopButton_Click"
                         ToolTip="Bắt đầu / Dừng dịch (không cần mở app chính)"/>
-                <Button x:Name="cbTtsButton" Content="🔊" Width="30" Height="28"
+                <Button x:Name="cbTtsButton" Content="🔊 Đọc" Width="64" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="TtsButton_Click"
                         ToolTip="Đọc bản dịch thành tiếng (TTS) — bật/tắt"/>
-                <Button x:Name="cbRetryButton" Content="↻" Width="30" Height="28"
+                <Button x:Name="cbRetryButton" Content="↻ Dịch lại" Width="84" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="RetryButton_Click"
                         ToolTip="Dịch lại màn hiện tại (khi lỗi mạng / dịch sai)"/>
-                <Button x:Name="cbCancelButton" Content="✕" Width="30" Height="28"
+                <Button x:Name="cbCancelButton" Content="✕ Hủy" Width="58" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="CancelButton_Click"
                         ToolTip="Hủy request đang gửi (khi mạng lâu / treo)"/>
-                <Button x:Name="cbShowAreaButton" Content="▦" Width="30" Height="28"
+                <Button x:Name="cbShowAreaButton" Content="▦ Vùng" Width="66" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ShowAreaButton_Click"
                         ToolTip="Hiện / ẩn viền vùng đang chọn"/>
-                <Button x:Name="cbOneOffButton" Content="＋vùng" Width="58" Height="28"
+                <Button x:Name="cbOneOffButton" Content="＋ Vùng lạ" Width="80" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="OneOffAreaButton_Click"

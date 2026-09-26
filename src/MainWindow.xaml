@@ -541,20 +541,6 @@
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
-                                    <Button x:Name="audioServiceButton" Style="{StaticResource ModernButton}"
-                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
-                                            Background="#6366f1" Click="AudioServiceButton_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True"
-                                            ToolTip="STT — Nghe tiếng game rồi dịch (tắt cho game không có lời thoại thật)">
-                                        <Button.ContentTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </Button.ContentTemplate>
-                                    </Button>
                                     <Button x:Name="ttsToggleButton" Style="{StaticResource ModernButton}"
                                             Content="Đọc bản dịch: Tắt"
                                             Background="#6366f1" Click="TtsToggleButton_Click"
@@ -667,7 +653,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button x:Name="monitorButton" Style="{StaticResource ModernButton}"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Overlay]}"
-                                            Background="#8b5cf6" Click="MonitorButton_Click"
+                                            Background="#3b82f6" Click="MonitorButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
@@ -716,7 +702,7 @@
                                     </Button>
                                     <Button x:Name="logButton" Style="{StaticResource ModernButton}"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Log]}"
-                                            Background="#a855f7" Click="LogButton_Click"
+                                            Background="#0891b2" Click="LogButton_Click"
                                             WindowChrome.IsHitTestVisibleInChrome="True">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
@@ -778,6 +764,30 @@
                                 </StackPanel>
                                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_OCREngine]}" 
                                            Style="{StaticResource ToolGroupLabel}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- GROUP: Experimental (Beta) — audio/STT lives here because it's not reliable yet -->
+                        <Border Style="{StaticResource ToolGroupStyle}" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="audioServiceButton" Style="{StaticResource ModernButton}"
+                                            Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
+                                            Background="#6366f1" Click="AudioServiceButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            ToolTip="STT — Nghe tiếng game rồi dịch. Tính năng THỬ NGHIỆM, chưa ổn định; tắt cho game không có lời thoại thật (nhạc nền dễ gây dịch bậy).">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="🧪 Thử nghiệm" Style="{StaticResource ToolGroupLabel}"
+                                           Foreground="{DynamicResource WarningBrush}"/>
                             </StackPanel>
                         </Border>
 

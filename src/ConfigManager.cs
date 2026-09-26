@@ -2237,7 +2237,7 @@ namespace RSTGameTranslation
         // Get/Set source language
         public string GetSourceLanguage()
         {
-            return GetValue(SOURCE_LANGUAGE, "ja"); // Default to Japanese
+            return GetValue(SOURCE_LANGUAGE, "en"); // Default to English
         }
 
         public void SetSourceLanguage(string language)
@@ -2269,7 +2269,7 @@ namespace RSTGameTranslation
         // Get/Set target language
         public string GetTargetLanguage()
         {
-            return GetValue(TARGET_LANGUAGE, "en"); // Default to English
+            return GetValue(TARGET_LANGUAGE, "vi"); // Default to Vietnamese
         }
 
         public void SetTargetLanguage(string language)

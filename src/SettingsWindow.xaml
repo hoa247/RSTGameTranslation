@@ -267,6 +267,26 @@
     </Window.Resources>
     <Grid>
         <TabControl Margin="5">
+            <!-- Force tab headers onto a single horizontally-scrollable row instead of wrapping to many rows -->
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled" Focusable="False"
+                                      Padding="0,0,0,2">
+                            <StackPanel IsItemsHost="True" Orientation="Horizontal"/>
+                        </ScrollViewer>
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                Background="{DynamicResource SurfaceBrush}" CornerRadius="0,4,4,4">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
             <!-- Language Settings Tab -->
             <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_Language]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -375,9 +395,17 @@
                                 <TextBlock x:Name="checkLanguagePack" Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_CheckLanguagePack]}" Grid.Row="2" Grid.Column="0" 
                                           VerticalAlignment="Center" Margin="0,0,10,0"  ToolTip="Check if the language package is installed."/>
                                 <Button x:Name="checkLanguagePackButton" Grid.Row="2" Grid.Column="1"
-                                        Width="60" Margin="10,0"
+                                        Width="60" Margin="10,0" HorizontalAlignment="Left"
                                         Click="CheckLanguagePackButton_Click">
                                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_Check]}"/>
+                                </Button>
+
+                                <!-- Reset to default language pair (English -> Vietnamese) -->
+                                <Button x:Name="resetLanguageDefaultsButton" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Left" Margin="0,12,0,0" Padding="12,6"
+                                        Click="ResetLanguageDefaultsButton_Click"
+                                        ToolTip="Đặt lại cặp ngôn ngữ mặc định: Tiếng Anh → Tiếng Việt">
+                                    <TextBlock Text="↺ Mặc định (English → Tiếng Việt)"/>
                                 </Button>
                             </Grid>
                         </GroupBox>

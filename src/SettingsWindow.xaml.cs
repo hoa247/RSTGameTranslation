@@ -1578,6 +1578,28 @@ namespace RSTGameTranslation
             }
         }
 
+        // Reset the translation direction to the app default: English -> Vietnamese.
+        // Setting SelectedItem cascades through the existing SelectionChanged handlers,
+        // which persist to config and sync MainWindow's hidden combos.
+        private void ResetLanguageDefaultsButton_Click(object sender, RoutedEventArgs e)
+        {
+            SelectLanguageByCode(sourceLanguageComboBox, "en");
+            SelectLanguageByCode(targetLanguageComboBox, "vi");
+        }
+
+        private static void SelectLanguageByCode(ComboBox comboBox, string code)
+        {
+            if (comboBox == null) return;
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (string.Equals(item.Content?.ToString(), code, StringComparison.OrdinalIgnoreCase))
+                {
+                    comboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
         private void OcrMethodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Skip event if we're initializing
