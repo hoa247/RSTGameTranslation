@@ -1543,6 +1543,10 @@ namespace RSTGameTranslation
         // Auto-clear timer tick - clears chatbox after inactivity
         private void AutoClearTimer_Tick(object? sender, EventArgs e)
         {
+            // Respect the "Tự động xóa lịch sử" checkbox — if it's off, never auto-clear.
+            if (!ConfigManager.Instance.IsAutoClearChatboxHistoryEnabled())
+                return;
+
             int timeout = ConfigManager.Instance.GetAutoClearChatTimeout();
 
             // If timeout is 0 or disabled, don't auto-clear
