@@ -42,7 +42,11 @@ namespace RSTGameTranslation
         private Color _currentOriginalTextColor;
         private Color _currentTranslatedTextColor;
         private Color _currentTextOutlineColor;
-        
+
+        // True while the dialog is populating controls from config, so change handlers don't
+        // write back / trigger live refreshes during initialization.
+        private bool _isLoadingOptions = true;
+
         // Default values
         private readonly Color DEFAULT_BACKGROUND_COLOR = Color.FromArgb(128, 0, 0, 0); // Dark background
         private readonly double DEFAULT_BACKGROUND_OPACITY = 0.5;  // 50% background opacity
@@ -65,9 +69,73 @@ namespace RSTGameTranslation
             
             // Load current settings from config
             LoadCurrentSettings();
-            
+
             // Update UI with loaded settings
             UpdateUIFromSettings();
+
+            // Populate the text layout / behaviour controls
+            InitLayoutOptionControls();
+
+            _isLoadingOptions = false;
+        }
+
+        private void InitLayoutOptionControls()
+        {
+            string align = ConfigManager.Instance.GetChatBoxTextAlignment();
+            textAlignmentComboBox.SelectedIndex = 0;
+            foreach (ComboBoxItem it in textAlignmentComboBox.Items)
+            {
+                if (string.Equals(it.Tag?.ToString(), align, StringComparison.OrdinalIgnoreCase))
+                {
+                    textAlignmentComboBox.SelectedItem = it;
+                    break;
+                }
+            }
+
+            int pad = ConfigManager.Instance.GetChatBoxTextPadding();
+            textPaddingSlider.Value = pad;
+            textPaddingText.Text = pad.ToString();
+
+            int sp = ConfigManager.Instance.GetChatBoxEntrySpacing();
+            entrySpacingSlider.Value = sp;
+            entrySpacingText.Text = sp.ToString();
+
+            showOnlyLatestCheckBox.IsChecked = ConfigManager.Instance.IsChatBoxShowOnlyLatest();
+        }
+
+        private void TextAlignmentComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoadingOptions) return;
+            if (textAlignmentComboBox.SelectedItem is ComboBoxItem it)
+            {
+                ConfigManager.Instance.SetChatBoxTextAlignment(it.Tag?.ToString() ?? "Left");
+                ChatBoxWindow.Instance?.UpdateChatHistory();
+            }
+        }
+
+        private void TextPaddingSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int v = (int)Math.Round(textPaddingSlider.Value);
+            if (textPaddingText != null) textPaddingText.Text = v.ToString();
+            if (_isLoadingOptions) return;
+            ConfigManager.Instance.SetChatBoxTextPadding(v);
+            ChatBoxWindow.Instance?.UpdateChatHistory();
+        }
+
+        private void EntrySpacingSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            int v = (int)Math.Round(entrySpacingSlider.Value);
+            if (entrySpacingText != null) entrySpacingText.Text = v.ToString();
+            if (_isLoadingOptions) return;
+            ConfigManager.Instance.SetChatBoxEntrySpacing(v);
+            ChatBoxWindow.Instance?.UpdateChatHistory();
+        }
+
+        private void ShowOnlyLatestCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isLoadingOptions) return;
+            ConfigManager.Instance.SetChatBoxShowOnlyLatest(showOnlyLatestCheckBox.IsChecked == true);
+            ChatBoxWindow.Instance?.UpdateChatHistory();
         }
 
         private void LoadFontFamilies()

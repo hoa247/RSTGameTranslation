@@ -135,10 +135,47 @@
                                     TickFrequency="2"
                                     IsSnapToTickEnabled="True"
                                     ValueChanged="FontSizeSlider_ValueChanged"/>
-                            <TextBlock x:Name="fontSizeText" 
-                                       Text="14" 
-                                       VerticalAlignment="Center" 
+                            <TextBlock x:Name="fontSizeText"
+                                       Text="14"
+                                       VerticalAlignment="Center"
                                        Margin="10,0,0,0"/>
+                        </DockPanel>
+
+                        <!-- Text alignment -->
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Căn lề chữ:" VerticalAlignment="Center" Width="120" />
+                            <ComboBox x:Name="textAlignmentComboBox" Width="150" HorizontalAlignment="Left"
+                                      SelectionChanged="TextAlignmentComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Trái" Tag="Left"/>
+                                <ComboBoxItem Content="Giữa" Tag="Center"/>
+                                <ComboBoxItem Content="Phải" Tag="Right"/>
+                            </ComboBox>
+                        </DockPanel>
+
+                        <!-- Inner padding -->
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Lề trong (padding):" VerticalAlignment="Center" Width="120" TextWrapping="Wrap" />
+                            <Slider x:Name="textPaddingSlider" Minimum="0" Maximum="40" Value="10" Width="150"
+                                    TickPlacement="BottomRight" TickFrequency="2" IsSnapToTickEnabled="True"
+                                    ValueChanged="TextPaddingSlider_ValueChanged"/>
+                            <TextBlock x:Name="textPaddingText" Text="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </DockPanel>
+
+                        <!-- Spacing between translations -->
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Khoảng cách câu:" VerticalAlignment="Center" Width="120" TextWrapping="Wrap" />
+                            <Slider x:Name="entrySpacingSlider" Minimum="0" Maximum="40" Value="10" Width="150"
+                                    TickPlacement="BottomRight" TickFrequency="2" IsSnapToTickEnabled="True"
+                                    ValueChanged="EntrySpacingSlider_ValueChanged"/>
+                            <TextBlock x:Name="entrySpacingText" Text="10" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </DockPanel>
+
+                        <!-- Show only the latest sentence (auto-clear the previous one) -->
+                        <DockPanel Margin="0,5">
+                            <TextBlock Text="Chỉ hiện câu mới nhất:" VerticalAlignment="Center" Width="120" TextWrapping="Wrap" />
+                            <CheckBox x:Name="showOnlyLatestCheckBox" Margin="0,5"
+                                      ToolTip="Tự động xóa câu trước ngay khi câu dịch mới xuất hiện"
+                                      Click="ShowOnlyLatestCheckBox_Changed"/>
                         </DockPanel>
 
                         <DockPanel Margin="0,5">

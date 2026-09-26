@@ -1849,6 +1849,17 @@ namespace RSTGameTranslation
                 // Clear existing content
                 chatHistoryText.Document.Blocks.Clear();
 
+                // Text layout options
+                chatHistoryText.Padding = new Thickness(ConfigManager.Instance.GetChatBoxTextPadding());
+                int entrySpacing = ConfigManager.Instance.GetChatBoxEntrySpacing();
+                bool showOnlyLatest = ConfigManager.Instance.IsChatBoxShowOnlyLatest();
+                System.Windows.TextAlignment textAlign = ConfigManager.Instance.GetChatBoxTextAlignment() switch
+                {
+                    "Center" => System.Windows.TextAlignment.Center,
+                    "Right" => System.Windows.TextAlignment.Right,
+                    _ => System.Windows.TextAlignment.Left
+                };
+
                 // Set up document properties to enable text wrapping
                 // PageWidth should match the viewport width of the ScrollViewer (minus padding)
                 // Subtract extra pixels to ensure text doesn't get too close to the scrollbar
@@ -1883,8 +1894,10 @@ namespace RSTGameTranslation
                 // Get the history from MainWindow
                 var mainWindowHistory = MainWindow.Instance.GetTranslationHistory();
 
-                // Get only the most recent entries for display (based on _maxHistorySize)
-                var displayHistory = mainWindowHistory.Reverse().Take(_maxHistorySize).Reverse();
+                // Get only the most recent entries for display (based on _maxHistorySize).
+                // "Show only latest" keeps just the newest one (auto-clears the previous sentence).
+                int takeCount = showOnlyLatest ? 1 : _maxHistorySize;
+                var displayHistory = mainWindowHistory.Reverse().Take(takeCount).Reverse();
 
                 // Get Min ChatBox Text Size setting
                 int minChatBoxTextSize = ConfigManager.Instance.GetChatBoxMinTextSize();
@@ -1913,8 +1926,9 @@ namespace RSTGameTranslation
                     // Create a new paragraph for this entry
                     Paragraph para = new Paragraph();
 
-                    // Set paragraph properties - regular margins now that scrollbar is outside
-                    para.Margin = new Thickness(5, 10, 5, 10); // Add vertical spacing
+                    // Set paragraph properties - spacing/alignment come from the text options
+                    para.Margin = new Thickness(0, 0, 0, entrySpacing);
+                    para.TextAlignment = textAlign;
                     para.TextIndent = 0;
                     para.LineHeight = Double.NaN; // Use default line height
 

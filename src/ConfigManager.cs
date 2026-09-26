@@ -2379,6 +2379,24 @@ namespace RSTGameTranslation
         public string GetChatBoxToolbarOrder() => GetValue(CHATBOX_TOOLBAR_ORDER, DEFAULT_CHATBOX_TOOLBAR_ORDER);
         public void SetChatBoxToolbarOrder(string v) { _configValues[CHATBOX_TOOLBAR_ORDER] = v ?? ""; SaveConfig(); }
 
+        // Chat text layout / behaviour options.
+        public const string CHATBOX_TEXT_ALIGNMENT = "chatbox_text_alignment"; // Left | Center | Right
+        public const string CHATBOX_TEXT_PADDING = "chatbox_text_padding";
+        public const string CHATBOX_ENTRY_SPACING = "chatbox_entry_spacing";
+        public const string CHATBOX_SHOW_ONLY_LATEST = "chatbox_show_only_latest";
+
+        public string GetChatBoxTextAlignment() => GetValue(CHATBOX_TEXT_ALIGNMENT, "Left");
+        public void SetChatBoxTextAlignment(string v) { _configValues[CHATBOX_TEXT_ALIGNMENT] = v ?? "Left"; SaveConfig(); }
+
+        public int GetChatBoxTextPadding() => int.TryParse(GetValue(CHATBOX_TEXT_PADDING, "10"), out var p) ? p : 10;
+        public void SetChatBoxTextPadding(int v) { _configValues[CHATBOX_TEXT_PADDING] = v.ToString(); SaveConfig(); }
+
+        public int GetChatBoxEntrySpacing() => int.TryParse(GetValue(CHATBOX_ENTRY_SPACING, "10"), out var s) ? s : 10;
+        public void SetChatBoxEntrySpacing(int v) { _configValues[CHATBOX_ENTRY_SPACING] = v.ToString(); SaveConfig(); }
+
+        public bool IsChatBoxShowOnlyLatest() => GetValue(CHATBOX_SHOW_ONLY_LATEST, "false").ToLower() == "true";
+        public void SetChatBoxShowOnlyLatest(bool v) { _configValues[CHATBOX_SHOW_ONLY_LATEST] = v.ToString().ToLower(); SaveConfig(); }
+
         // Per-function on/off. A disabled function's hotkey is not registered (key falls through to the
         // game) and its toolbar button is greyed out. Stored as a comma-separated list of disabled names.
         public const string DISABLED_FUNCTIONS = "disabled_functions";
