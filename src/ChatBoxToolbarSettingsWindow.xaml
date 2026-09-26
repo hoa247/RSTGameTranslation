@@ -43,12 +43,18 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⠿" FontSize="14" Foreground="{DynamicResource MutedBrush}"
-                                       VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="Kéo để đổi thứ tự"/>
-                            <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"/>
-                        </StackPanel>
+                        <DockPanel LastChildFill="True">
+                            <Button DockPanel.Dock="Right" Content="⤓" Width="30" Margin="2,0,0,0" Padding="0"
+                                    ToolTip="Xuống cuối" Click="MoveToBottom_Click"/>
+                            <Button DockPanel.Dock="Right" Content="⤒" Width="30" Margin="2,0,0,0" Padding="0"
+                                    ToolTip="Lên đầu" Click="MoveToTop_Click"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⠿" FontSize="14" Foreground="{DynamicResource MutedBrush}"
+                                           VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="Kéo để đổi thứ tự"/>
+                                <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"/>
+                            </StackPanel>
+                        </DockPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

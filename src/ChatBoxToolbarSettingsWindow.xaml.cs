@@ -108,6 +108,24 @@ namespace RSTGameTranslation
             _dragged = null;
         }
 
+        private void MoveToTop_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement fe && fe.DataContext is ToolbarItemVm vm)
+            {
+                int i = _items.IndexOf(vm);
+                if (i > 0) _items.Move(i, 0);
+            }
+        }
+
+        private void MoveToBottom_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement fe && fe.DataContext is ToolbarItemVm vm)
+            {
+                int i = _items.IndexOf(vm);
+                if (i >= 0 && i < _items.Count - 1) _items.Move(i, _items.Count - 1);
+            }
+        }
+
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
             ConfigManager.Instance.SetChatBoxToolbarOrder(ConfigManager.DEFAULT_CHATBOX_TOOLBAR_ORDER);
