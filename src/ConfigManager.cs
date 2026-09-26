@@ -142,7 +142,7 @@ namespace RSTGameTranslation
         // Customizable ChatBox toolbar: comma-separated, ordered list of visible button ids.
         public const string CHATBOX_TOOLBAR_ORDER = "chatbox_toolbar_order";
         public const string DEFAULT_CHATBOX_TOOLBAR_ORDER =
-            "selectArea,showArea,cancel,retry,tts,startStop,history,options,mode,clear,fontDecrease,fontIncrease";
+            "selectArea,oneOff,showArea,cancel,retry,tts,startStop,history,options,mode,clear,fontDecrease,fontIncrease";
         public const string TTS_SERVICE = "tts_service";
         public const string ELEVENLABS_API_KEY = "elevenlabs_api_key";
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";

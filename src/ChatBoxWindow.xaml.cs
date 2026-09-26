@@ -750,6 +750,13 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Overlay");
         }
 
+        // One-off translate: pick any region on screen and translate it exactly once,
+        // without changing the persistent default area.
+        private void OneOffButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.Instance?.StartOneOffAreaSelection();
+        }
+
         private void AudioButton_Click(object sender, RoutedEventArgs e)
         {
             KeyboardShortcuts.InvokeFunctionFromClick("Audio Service");
@@ -802,6 +809,7 @@ namespace RSTGameTranslation
         public static readonly List<KeyValuePair<string, string>> ToolbarCatalog = new List<KeyValuePair<string, string>>
         {
             new("selectArea", "⬚ Chọn vùng (Alt+Q)"),
+            new("oneOff", "🎯 Dịch tùy chọn 1 lần"),
             new("showArea", "▦ Hiện/ẩn vùng"),
             new("cancel", "✕ Hủy"),
             new("retry", "↻ Dịch lại"),

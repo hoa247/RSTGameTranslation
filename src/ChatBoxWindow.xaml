@@ -198,6 +198,9 @@
                     <Button x:Name="cbAudioButton" Tag="audio" Content="🎤 Âm thanh" Height="28"
                             Style="{StaticResource HeaderButtonStyle}" Click="AudioButton_Click"
                             ToolTip="Bật / tắt Dịch âm thanh (STT) — thử nghiệm"/>
+                    <Button x:Name="cbOneOffButton" Tag="oneOff" Content="🎯 Dịch 1 lần" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="OneOffButton_Click"
+                            ToolTip="Chọn 1 vùng bất kỳ trên màn hình rồi dịch DUY NHẤT 1 lần (không đổi vùng mặc định)"/>
                     <!-- Global-hotkey actions (all hidden by default; enable via customize dialog) -->
                     <Button x:Name="cbToggleChatBoxButton" Tag="toggleChatBox" Content="💬 Hộp thoại" Height="28"
                             Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
