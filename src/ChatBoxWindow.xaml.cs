@@ -702,6 +702,10 @@ namespace RSTGameTranslation
                 if (cbStartStopButton == null) return;
                 bool started = MainWindow.Instance != null && MainWindow.Instance.GetIsStarted();
                 cbStartStopButton.Content = started ? "⏸ Dừng" : "▶ Start";
+                // Green while translating, red when stopped — easy to spot at a glance.
+                cbStartStopButton.Background = started
+                    ? new SolidColorBrush(Color.FromRgb(20, 180, 20))
+                    : new SolidColorBrush(Color.FromRgb(220, 60, 60));
                 if (cbTtsButton != null)
                     cbTtsButton.Content = ConfigManager.Instance.IsTtsEnabled() ? "🔊" : "🔇";
             }
