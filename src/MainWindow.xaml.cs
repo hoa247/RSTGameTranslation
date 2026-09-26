@@ -933,6 +933,9 @@ namespace RSTGameTranslation
             UpdateCustomCaptureRect();
 
             selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
+
+            // Persist so the same area can be restored next session.
+            SaveSessionAreas();
         }
 
         public void SwitchToTranslationArea(int index)
@@ -1580,6 +1583,10 @@ namespace RSTGameTranslation
             }
             else
             {
+                // If the game window / area was lost (e.g. after an app or game restart), try to
+                // resume the last session so a single Start press picks up where we left off.
+                TryRestoreSession();
+
                 if (isReady)
                 {
                     isStarted = true;
@@ -3397,6 +3404,7 @@ namespace RSTGameTranslation
                 }
             }
             Console.WriteLine("Previous translation area have been removed.");
+            SaveSessionAreas();
         }
 
         private void btnClearSelectionArea_Click(object sender, RoutedEventArgs e)
@@ -3416,6 +3424,9 @@ namespace RSTGameTranslation
 
             // Update capture area to default area
             UpdateCaptureRect();
+
+            // Persist the cleared state so it isn't auto-restored on next Start.
+            SaveSessionAreas();
 
             Console.WriteLine("All translation areas have been cleared.");
 
@@ -3698,39 +3709,143 @@ namespace RSTGameTranslation
 
         private void OnWindowSelected(IntPtr windowHandle, string windowTitle)
         {
-            if (windowHandle != IntPtr.Zero)
+            AcquireWindow(windowHandle, windowTitle, announce: true);
+        }
+
+        /// <summary>
+        /// Sets up window capture for the given window (WGC + UI + remembers it for next session).
+        /// Shared by manual selection (announce=true) and automatic re-acquire (announce=false).
+        /// </summary>
+        private void AcquireWindow(IntPtr windowHandle, string windowTitle, bool announce)
+        {
+            if (windowHandle == IntPtr.Zero) return;
+
+            capturedWindowHandle = windowHandle;
+            capturedWindowTitle = windowTitle;
+            isCapturingWindow = true;
+
+            // Start Windows Graphics Capture for flicker-free window capture.
+            _graphicsCaptureService?.Dispose();
+            _graphicsCaptureService = new GraphicsCaptureService();
+            if (!_graphicsCaptureService.StartCapture(windowHandle))
             {
-                capturedWindowHandle = windowHandle;
-                capturedWindowTitle = windowTitle;
-                isCapturingWindow = true;
+                Console.WriteLine("WGC not available, will use screen capture fallback");
+                _graphicsCaptureService.Dispose();
+                _graphicsCaptureService = null;
+            }
 
-                // Start Windows Graphics Capture for flicker-free window capture.
-                _graphicsCaptureService?.Dispose();
-                _graphicsCaptureService = new GraphicsCaptureService();
-                if (!_graphicsCaptureService.StartCapture(windowHandle))
-                {
-                    Console.WriteLine("WGC not available, will use screen capture fallback");
-                    _graphicsCaptureService.Dispose();
-                    _graphicsCaptureService = null;
-                }
+            // WGC captures the window directly, so the overlay doesn't need to be excluded.
+            if (Windows_Version != "Windows 10")
+            {
+                MonitorWindow.Instance.DisableExcludeFromCapture();
+            }
 
-                // WGC captures the window directly, so the overlay doesn't need to be excluded.
-                if (Windows_Version != "Windows 10")
-                {
-                    MonitorWindow.Instance.DisableExcludeFromCapture();
-                }
+            selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
+            selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
 
-                selectWindowButton.Content = $"Window: {(capturedWindowTitle.Length > 10 ? capturedWindowTitle.Substring(0, 10) + "..." : capturedWindowTitle)}";
-                selectWindowButton.Background = new SolidColorBrush(Color.FromRgb(220, 0, 0)); // Red
+            Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
 
-                Console.WriteLine($"Selected window: {capturedWindowTitle} (Handle: {capturedWindowHandle})");
+            // Remember the game so it can be auto re-acquired next session by process name.
+            try
+            {
+                ConfigManager.Instance.SetValue("last_capture_process", WindowFinder.GetProcessName(windowHandle));
+                ConfigManager.Instance.SetValue("last_capture_title", windowTitle);
+                ConfigManager.Instance.SaveConfig();
+            }
+            catch { }
 
+            if (announce)
+            {
                 System.Windows.MessageBox.Show(
                     $"Now capturing window: {capturedWindowTitle}",
                     "Window Selected",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
+        }
+
+        // ---- Session persistence: remember window + areas so the user can just press Start next time ----
+
+        private void SaveSessionAreas()
+        {
+            try
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var a in savedTranslationAreas)
+                {
+                    sb.Append(a.X.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',');
+                    sb.Append(a.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',');
+                    sb.Append(a.Width.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',');
+                    sb.Append(a.Height.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',');
+                    sb.Append(a.ScreenIndex).Append(',');
+                    sb.Append(a.DpiScaleX.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',');
+                    sb.Append(a.DpiScaleY.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append('+');
+                }
+                ConfigManager.Instance.SetValue("session_areas", sb.ToString());
+                ConfigManager.Instance.SaveConfig();
+            }
+            catch (Exception ex) { Console.WriteLine($"SaveSessionAreas failed: {ex.Message}"); }
+        }
+
+        private void RestoreSessionAreas()
+        {
+            try
+            {
+                string value = ConfigManager.Instance.GetValue("session_areas", "");
+                if (string.IsNullOrEmpty(value)) return;
+
+                var restored = new List<TranslationAreaInfo>();
+                foreach (string s in value.Split(new[] { '+' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    string[] p = s.Split(',');
+                    if (p.Length < 4) continue;
+                    var ci = System.Globalization.CultureInfo.InvariantCulture;
+                    if (!double.TryParse(p[0], System.Globalization.NumberStyles.Any, ci, out double x)) continue;
+                    if (!double.TryParse(p[1], System.Globalization.NumberStyles.Any, ci, out double y)) continue;
+                    if (!double.TryParse(p[2], System.Globalization.NumberStyles.Any, ci, out double w)) continue;
+                    if (!double.TryParse(p[3], System.Globalization.NumberStyles.Any, ci, out double h)) continue;
+                    int screen = p.Length > 4 && int.TryParse(p[4], out int si) ? si : 0;
+                    double dx = p.Length > 5 && double.TryParse(p[5], System.Globalization.NumberStyles.Any, ci, out double ddx) ? ddx : 1.0;
+                    double dy = p.Length > 6 && double.TryParse(p[6], System.Globalization.NumberStyles.Any, ci, out double ddy) ? ddy : 1.0;
+                    restored.Add(new TranslationAreaInfo(new Rect(x, y, w, h), screen, dx, dy));
+                }
+
+                if (restored.Count > 0)
+                {
+                    savedTranslationAreas = restored;
+                    currentAreaIndex = restored.Count - 1;
+                    hasSelectedTranslationArea = true;
+                    UpdateCaptureRect();
+                    Console.WriteLine($"Restored {restored.Count} session area(s)");
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"RestoreSessionAreas failed: {ex.Message}"); }
+        }
+
+        /// <summary>
+        /// Called when the user presses Start: if no window/area is active, re-acquire the last game
+        /// window (by process) and restore the saved areas so a single Start resumes the last session.
+        /// Fully best-effort — any failure just leaves the user to select manually.
+        /// </summary>
+        public void TryRestoreSession()
+        {
+            try
+            {
+                if (savedTranslationAreas.Count == 0)
+                    RestoreSessionAreas();
+
+                if (!isCapturingWindow)
+                {
+                    string proc = ConfigManager.Instance.GetValue("last_capture_process", "");
+                    if (!string.IsNullOrEmpty(proc))
+                    {
+                        var (h, t) = WindowFinder.FindByProcessName(proc);
+                        if (h != IntPtr.Zero)
+                            AcquireWindow(h, t, announce: false);
+                    }
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"TryRestoreSession failed: {ex.Message}"); }
         }
 
         // Load language settings from config
