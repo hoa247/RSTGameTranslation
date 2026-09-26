@@ -805,9 +805,16 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Audio Service");
         }
 
-        // Maps a toolbar button Tag id to the global-hotkey function it triggers.
-        private static readonly Dictionary<string, string> _proxyTagToFunction = new()
+        // Maps a toolbar button Tag id to the global-hotkey function it corresponds to.
+        // Used both to dispatch proxy buttons and to grey out buttons whose function is disabled.
+        private static readonly Dictionary<string, string> _tagToFunction = new()
         {
+            { "selectArea", "Select Area" },
+            { "showArea", "Show Area" },
+            { "overlay", "Overlay" },
+            { "audio", "Audio Service" },
+            { "startStop", "Start/Stop" },
+            { "retry", "Retry Translation" },
             { "toggleChatBox", "ChatBox" },
             { "settings", "Setting" },
             { "log", "Log" },
@@ -826,7 +833,7 @@ namespace RSTGameTranslation
         private void HotkeyProxyButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button b && b.Tag is string id &&
-                _proxyTagToFunction.TryGetValue(id, out var function))
+                _tagToFunction.TryGetValue(id, out var function))
             {
                 KeyboardShortcuts.InvokeFunctionFromClick(function);
             }
@@ -924,6 +931,11 @@ namespace RSTGameTranslation
                     if (_toolbarButtons.TryGetValue(id, out var btn))
                     {
                         btn.Visibility = Visibility.Visible;
+                        // Grey out (and disable) buttons whose underlying function was turned off in Settings.
+                        bool enabled = !_tagToFunction.TryGetValue(id, out var fn)
+                                       || ConfigManager.Instance.IsFunctionEnabled(fn);
+                        btn.IsEnabled = enabled;
+                        btn.Opacity = enabled ? 1.0 : 0.4;
                         toolbarPanel.Children.Add(btn);
                     }
                 }

@@ -334,6 +334,10 @@ namespace RSTGameTranslation
 
         private static void RegisterFunctionHotkey(string functionName, int hotkeyId)
         {
+            // If the user turned this function off, don't grab its key — let it fall through to the game.
+            if (!ConfigManager.Instance.IsFunctionEnabled(functionName))
+                return;
+
             if (_parsedHotkeys.TryGetValue(functionName, out var hotkeyInfo))
             {
                 uint modifiers = hotkeyInfo.modifiers | MOD_NOREPEAT;
@@ -391,6 +395,10 @@ namespace RSTGameTranslation
 
         private static bool DispatchFunction(string function, bool shouldInvoke)
         {
+            // Respect the per-function on/off switch for every entry point (hotkey, toolbar button, row click).
+            if (!ConfigManager.Instance.IsFunctionEnabled(function))
+                return true;
+
             switch (function)
             {
                 case "Start/Stop":

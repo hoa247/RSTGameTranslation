@@ -2108,6 +2108,34 @@
                                 </Border>
                             </Grid>
                         </GroupBox>
+
+                        <!-- Enable / disable individual functions -->
+                        <GroupBox Header="Bật / tắt chức năng" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Bỏ tick để TẮT HẲN một chức năng: phím tắt sẽ không chạy (phím lọt xuống game) và nút tương ứng trên thanh ChatBox bị mờ. Ví dụ tắt 'Đổi ngôn ngữ' để khỏi bấm nhầm Alt+V."
+                                           TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,10"/>
+                                <WrapPanel x:Name="functionToggleWrap">
+                                    <CheckBox Tag="Start/Stop" Content="Bắt đầu / Dừng dịch" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Overlay" Content="Bật/tắt lớp phủ" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="ChatBox" Content="Bật/tắt hộp thoại" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Setting" Content="Mở cài đặt" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Log" Content="Bật/tắt nhật ký" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Select Area" Content="Chọn vùng" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Show Area" Content="Hiện viền vùng" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Clear Areas" Content="Xóa tất cả vùng" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Clear Selected Area" Content="Xóa vùng đã chọn" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Select Exclude Region" Content="Chọn vùng loại trừ" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Audio Service" Content="Dịch âm thanh (STT)" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Swap Languages" Content="Đổi ngôn ngữ (Alt+V)" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Retry Translation" Content="Thử lại bản dịch" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Area 1" Content="Chọn vùng 1" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Area 2" Content="Chọn vùng 2" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Area 3" Content="Chọn vùng 3" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Area 4" Content="Chọn vùng 4" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                    <CheckBox Tag="Area 5" Content="Chọn vùng 5" MinWidth="230" Margin="0,4" Click="FunctionEnabledCheckBox_Changed"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

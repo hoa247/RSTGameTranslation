@@ -1220,6 +1220,11 @@ namespace RSTGameTranslation
             startAutoOverlayCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoOverlayEnabled();
             startAutoShowAreaCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoShowAreaEnabled();
 
+            // Per-function on/off checkboxes
+            foreach (var child in functionToggleWrap.Children)
+                if (child is System.Windows.Controls.CheckBox fcb && fcb.Tag is string ffn)
+                    fcb.IsChecked = ConfigManager.Instance.IsFunctionEnabled(ffn);
+
             // Set Exclude character name
             excludeCharacterNameCheckBox.IsChecked = ConfigManager.Instance.IsExcludeCharacterNameEnabled();
 
@@ -1615,6 +1620,21 @@ namespace RSTGameTranslation
                     comboBox.SelectedItem = item;
                     break;
                 }
+            }
+        }
+
+        // Turn a whole function on/off: re-register hotkeys (disabled ones release their key) and
+        // refresh the ChatBox toolbar so the matching button is greyed/enabled.
+        private void FunctionEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (sender is System.Windows.Controls.CheckBox cb && cb.Tag is string fn)
+            {
+                ConfigManager.Instance.SetFunctionEnabled(fn, cb.IsChecked == true);
+                KeyboardShortcuts.RefreshHotkeys();
+                IntPtr h = new WindowInteropHelper(MainWindow.Instance).Handle;
+                if (h != IntPtr.Zero) KeyboardShortcuts.SetMainWindowHandle(h);
+                ChatBoxWindow.Instance?.ApplyToolbarLayout();
             }
         }
 

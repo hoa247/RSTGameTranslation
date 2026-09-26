@@ -2379,6 +2379,36 @@ namespace RSTGameTranslation
         public string GetChatBoxToolbarOrder() => GetValue(CHATBOX_TOOLBAR_ORDER, DEFAULT_CHATBOX_TOOLBAR_ORDER);
         public void SetChatBoxToolbarOrder(string v) { _configValues[CHATBOX_TOOLBAR_ORDER] = v ?? ""; SaveConfig(); }
 
+        // Per-function on/off. A disabled function's hotkey is not registered (key falls through to the
+        // game) and its toolbar button is greyed out. Stored as a comma-separated list of disabled names.
+        public const string DISABLED_FUNCTIONS = "disabled_functions";
+
+        public bool IsFunctionEnabled(string function)
+        {
+            if (string.IsNullOrEmpty(function)) return true;
+            string csv = GetValue(DISABLED_FUNCTIONS, "");
+            if (string.IsNullOrEmpty(csv)) return true;
+            foreach (var f in csv.Split(','))
+                if (f.Trim().Equals(function, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            return true;
+        }
+
+        public void SetFunctionEnabled(string function, bool enabled)
+        {
+            if (string.IsNullOrEmpty(function)) return;
+            var list = new List<string>();
+            foreach (var f in GetValue(DISABLED_FUNCTIONS, "").Split(','))
+            {
+                string t = f.Trim();
+                if (t.Length > 0 && !t.Equals(function, StringComparison.OrdinalIgnoreCase))
+                    list.Add(t);
+            }
+            if (!enabled) list.Add(function);
+            _configValues[DISABLED_FUNCTIONS] = string.Join(",", list);
+            SaveConfig();
+        }
+
         // Get/Set exclude character name
         public bool IsExcludeCharacterNameEnabled()
         {
