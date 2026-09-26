@@ -198,6 +198,11 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ShowAreaButton_Click"
                         ToolTip="Hiện / ẩn viền vùng đang chọn"/>
+                <Button x:Name="cbOneOffButton" Content="＋vùng" Width="58" Height="28"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource HeaderButtonStyle}"
+                        Click="OneOffAreaButton_Click"
+                        ToolTip="Dịch 1 LẦN một vùng tùy chọn (text lạ xuất hiện chỗ khác), xong tự quay lại vùng mặc định"/>
                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White"
                            VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
             </DockPanel>

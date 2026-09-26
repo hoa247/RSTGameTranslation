@@ -756,9 +756,60 @@ namespace RSTGameTranslation
             }
         }
 
+        // When true, the next completed area selection is translated once then discarded,
+        // reverting to the previous default area.
+        private bool _oneOffActive = false;
+
         private void SelectAreaButton_Click(object sender, RoutedEventArgs e)
         {
+            _oneOffActive = false; // a normal area selection is never one-off
             ToggleTranslationAreaSelector();
+        }
+
+        /// <summary>
+        /// Opens the area picker for a single one-off translation: the chosen area is captured and
+        /// translated once, then the previous default area is restored. Handy for a stray line of
+        /// text that appears somewhere outside the usual subtitle box.
+        /// </summary>
+        public void StartOneOffAreaSelection()
+        {
+            _oneOffActive = true;
+            ToggleTranslationAreaSelector();
+        }
+
+        /// <summary>
+        /// Captures and translates a one-off area exactly once, then restores the previous default
+        /// area. The bitmap is grabbed synchronously so reverting the area immediately afterwards is
+        /// safe; the async OCR/translate keeps working on the already-captured image.
+        /// </summary>
+        private void HandleOneOffArea(TranslationAreaInfo areaInfo)
+        {
+            var prevAreas = savedTranslationAreas;
+            int prevIndex = currentAreaIndex;
+            bool prevHasSelected = hasSelectedTranslationArea;
+            var prevSelected = selectedTranslationArea;
+
+            try
+            {
+                savedTranslationAreas = new List<TranslationAreaInfo>(prevAreas) { areaInfo };
+                currentAreaIndex = savedTranslationAreas.Count - 1;
+                hasSelectedTranslationArea = true;
+                selectedTranslationArea = areaInfo;
+                UpdateCustomCaptureRect();
+
+                Logic.Instance.ResetHash();  // don't let the similarity dedup skip this one-off
+                PerformCapture();            // synchronous capture -> async OCR/translate follows
+                Console.WriteLine("One-off area translated; reverting to previous area");
+            }
+            catch (Exception ex) { Console.WriteLine($"One-off area failed: {ex.Message}"); }
+            finally
+            {
+                savedTranslationAreas = prevAreas;
+                currentAreaIndex = prevIndex;
+                hasSelectedTranslationArea = prevHasSelected;
+                selectedTranslationArea = prevSelected;
+                UpdateCaptureRect();
+            }
         }
 
         private void ToggleTranslationAreaSelector()
@@ -796,6 +847,7 @@ namespace RSTGameTranslation
             selectorWindow.Closed += (s, e) =>
             {
                 isSelectingTranslationArea = false;
+                _oneOffActive = false; // clear any pending one-off if the picker was cancelled
                 if (!hasSelectedTranslationArea)
                 {
                     selectAreaButton.Background = new SolidColorBrush(Color.FromRgb(69, 105, 176)); // Blue
@@ -887,6 +939,13 @@ namespace RSTGameTranslation
         // Handle the event when translation region is selected
         private void TranslationAreaSelector_SelectionComplete(object? sender, TranslationAreaInfo areaInfo)
         {
+            if (_oneOffActive)
+            {
+                _oneOffActive = false;
+                HandleOneOffArea(areaInfo);
+                return;
+            }
+
             // Check if multiple areas are allowed
             bool allowMultipleAreas = ConfigManager.Instance.IsMultiSelectionAreaEnabled();
 
