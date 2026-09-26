@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Title]}"
-        Height="300" Width="900" MinWidth="820"
+        Height="300" Width="980" MinWidth="940"
         Topmost="True"
         AllowsTransparency="True"
         Background="#80000000"
@@ -203,6 +203,11 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="ShowAreaButton_Click"
                         ToolTip="Hiện / ẩn viền vùng đang chọn"/>
+                <Button x:Name="cbSelectAreaButton" Content="⬚ Chọn vùng" Width="100" Height="28"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource HeaderButtonStyle}"
+                        Click="SelectAreaButton_Click"
+                        ToolTip="Chọn vùng dịch mới (giống phím tắt Alt + Q)"/>
                 <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White"
                            VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
             </DockPanel>

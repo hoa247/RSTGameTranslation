@@ -739,6 +739,12 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Show Area");
         }
 
+        // Select a new translation area — same action as the Alt+Q global hotkey.
+        private void SelectAreaButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Select Area");
+        }
+
         private HistoryWindow? _historyWindow;
 
         private void HistoryButton_Click(object sender, RoutedEventArgs e)
