@@ -832,27 +832,34 @@ namespace RSTGameTranslation
         // Rebuild the header toolbar from the saved config: only visible ids, in saved order.
         // Keeps the existing named Button instances (so state-update code keeps working) — just
         // toggles Visibility and re-orders them inside toolbarPanel.
+        // Cached references to ALL toolbar buttons by Tag id. Built once from the XAML so that
+        // hidden buttons (removed from the panel) are not lost and can be re-shown later.
+        private Dictionary<string, System.Windows.Controls.Button>? _toolbarButtons;
+
         public void ApplyToolbarLayout()
         {
             try
             {
                 if (toolbarPanel == null) return;
 
-                // Collect all customizable buttons (they carry a string Tag id).
-                var buttons = new Dictionary<string, System.Windows.Controls.Button>();
-                foreach (var child in toolbarPanel.Children)
+                // Build the full button cache the first time (every button is still in the panel then).
+                if (_toolbarButtons == null)
                 {
-                    if (child is System.Windows.Controls.Button b && b.Tag is string id && !string.IsNullOrEmpty(id))
-                        buttons[id] = b;
+                    _toolbarButtons = new Dictionary<string, System.Windows.Controls.Button>();
+                    foreach (var child in toolbarPanel.Children)
+                    {
+                        if (child is System.Windows.Controls.Button b && b.Tag is string id && !string.IsNullOrEmpty(id))
+                            _toolbarButtons[id] = b;
+                    }
                 }
 
-                // Detach every button (keep the label / non-button children where they are).
+                // Detach every button from the panel (keep the label / non-button children in place).
                 for (int i = toolbarPanel.Children.Count - 1; i >= 0; i--)
                 {
                     if (toolbarPanel.Children[i] is System.Windows.Controls.Button)
                         toolbarPanel.Children.RemoveAt(i);
                 }
-                foreach (var b in buttons.Values)
+                foreach (var b in _toolbarButtons.Values)
                     b.Visibility = Visibility.Collapsed;
 
                 // Re-add only the visible buttons, in the saved order.
@@ -861,7 +868,7 @@ namespace RSTGameTranslation
                 {
                     string id = rawId.Trim();
                     if (id.Length == 0) continue;
-                    if (buttons.TryGetValue(id, out var btn))
+                    if (_toolbarButtons.TryGetValue(id, out var btn))
                     {
                         btn.Visibility = Visibility.Visible;
                         toolbarPanel.Children.Add(btn);
