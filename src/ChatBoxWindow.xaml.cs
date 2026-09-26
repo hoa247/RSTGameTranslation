@@ -745,6 +745,80 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Select Area");
         }
 
+        private void OverlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Overlay");
+        }
+
+        private void AudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Audio Service");
+        }
+
+        // Every toolbar action: id -> friendly name. Used by the customize dialog to list all options.
+        public static readonly List<KeyValuePair<string, string>> ToolbarCatalog = new List<KeyValuePair<string, string>>
+        {
+            new("selectArea", "⬚ Chọn vùng (Alt+Q)"),
+            new("showArea", "▦ Hiện/ẩn vùng"),
+            new("cancel", "✕ Hủy"),
+            new("retry", "↻ Dịch lại"),
+            new("tts", "🔊 Đọc bản dịch (TTS)"),
+            new("startStop", "▶ Bắt đầu / Dừng"),
+            new("history", "Lịch sử"),
+            new("options", "Tùy chọn"),
+            new("mode", "Văn bản dịch (đổi chế độ)"),
+            new("clear", "Xóa"),
+            new("fontDecrease", "A− (nhỏ chữ)"),
+            new("fontIncrease", "A+ (to chữ)"),
+            new("overlay", "📺 Lớp phủ"),
+            new("audio", "🎤 Âm thanh (STT)"),
+        };
+
+        // Rebuild the header toolbar from the saved config: only visible ids, in saved order.
+        // Keeps the existing named Button instances (so state-update code keeps working) — just
+        // toggles Visibility and re-orders them inside toolbarPanel.
+        public void ApplyToolbarLayout()
+        {
+            try
+            {
+                if (toolbarPanel == null) return;
+
+                // Collect all customizable buttons (they carry a string Tag id).
+                var buttons = new Dictionary<string, System.Windows.Controls.Button>();
+                foreach (var child in toolbarPanel.Children)
+                {
+                    if (child is System.Windows.Controls.Button b && b.Tag is string id && !string.IsNullOrEmpty(id))
+                        buttons[id] = b;
+                }
+
+                // Detach every button (keep the label / non-button children where they are).
+                for (int i = toolbarPanel.Children.Count - 1; i >= 0; i--)
+                {
+                    if (toolbarPanel.Children[i] is System.Windows.Controls.Button)
+                        toolbarPanel.Children.RemoveAt(i);
+                }
+                foreach (var b in buttons.Values)
+                    b.Visibility = Visibility.Collapsed;
+
+                // Re-add only the visible buttons, in the saved order.
+                string cfg = ConfigManager.Instance.GetChatBoxToolbarOrder();
+                foreach (var rawId in cfg.Split(','))
+                {
+                    string id = rawId.Trim();
+                    if (id.Length == 0) continue;
+                    if (buttons.TryGetValue(id, out var btn))
+                    {
+                        btn.Visibility = Visibility.Visible;
+                        toolbarPanel.Children.Add(btn);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ApplyToolbarLayout failed: {ex.Message}");
+            }
+        }
+
         private HistoryWindow? _historyWindow;
 
         private void HistoryButton_Click(object sender, RoutedEventArgs e)
@@ -798,6 +872,9 @@ namespace RSTGameTranslation
 
         private void ChatBoxWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // Build the header toolbar from the user's saved layout.
+            ApplyToolbarLayout();
+
             // Load saved position from config (only if recreate-on-show is disabled)
             if (!ConfigManager.Instance.IsChatboxRecreateOnShowEnabled())
             {

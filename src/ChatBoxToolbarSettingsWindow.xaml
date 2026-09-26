@@ -1,0 +1,65 @@
+<Window x:Class="RSTGameTranslation.ChatBoxToolbarSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RSTGameTranslation"
+        mc:Ignorable="d"
+        Title="Tùy chỉnh thanh nút ChatBox"
+        Height="540" Width="440"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBrush}"
+        Foreground="{DynamicResource TextBrush}"
+        Icon="/media/AppIcon.ico">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Tùy chỉnh các nút trên thanh ChatBox" FontWeight="Bold" FontSize="14"/>
+            <TextBlock Text="• Tick để HIỆN nút, bỏ tick để ẩn.  • Kéo–thả để đổi thứ tự (trên = bên trái)."
+                       TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4">
+            <ListBox x:Name="itemsList" BorderThickness="0" Background="Transparent"
+                     AllowDrop="True"
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     PreviewMouseMove="ItemsList_PreviewMouseMove"
+                     Drop="ItemsList_Drop">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="AllowDrop" Value="True"/>
+                        <Setter Property="Padding" Value="6,5"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_PreviewMouseLeftButtonDown"/>
+                        <EventSetter Event="Drop" Handler="Item_Drop"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⠿" FontSize="14" Foreground="{DynamicResource MutedBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="Kéo để đổi thứ tự"/>
+                            <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <TextBlock x:Name="statusText" Grid.Row="2" Margin="0,8,0,0" Foreground="{DynamicResource SuccessBrush}" Text=""/>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="↺ Mặc định" Click="ResetButton_Click" Margin="0,0,8,0" Padding="12,6"/>
+            <Button Content="💾 Lưu" Click="SaveButton_Click" Margin="0,0,8,0" Padding="16,6"/>
+            <Button Content="Đóng" Click="CloseButton_Click" Padding="12,6"/>
+        </StackPanel>
+    </Grid>
+</Window>

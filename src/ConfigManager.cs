@@ -139,6 +139,10 @@ namespace RSTGameTranslation
         public const string START_AUTO_CHATBOX = "start_auto_chatbox";
         public const string START_AUTO_OVERLAY = "start_auto_overlay";
         public const string START_AUTO_SHOWAREA = "start_auto_showarea";
+        // Customizable ChatBox toolbar: comma-separated, ordered list of visible button ids.
+        public const string CHATBOX_TOOLBAR_ORDER = "chatbox_toolbar_order";
+        public const string DEFAULT_CHATBOX_TOOLBAR_ORDER =
+            "selectArea,showArea,cancel,retry,tts,startStop,history,options,mode,clear,fontDecrease,fontIncrease";
         public const string TTS_SERVICE = "tts_service";
         public const string ELEVENLABS_API_KEY = "elevenlabs_api_key";
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
@@ -2371,6 +2375,9 @@ namespace RSTGameTranslation
 
         public bool IsStartAutoShowAreaEnabled() => GetValue(START_AUTO_SHOWAREA, "false").ToLower() == "true";
         public void SetStartAutoShowAreaEnabled(bool v) { _configValues[START_AUTO_SHOWAREA] = v.ToString().ToLower(); SaveConfig(); }
+
+        public string GetChatBoxToolbarOrder() => GetValue(CHATBOX_TOOLBAR_ORDER, DEFAULT_CHATBOX_TOOLBAR_ORDER);
+        public void SetChatBoxToolbarOrder(string v) { _configValues[CHATBOX_TOOLBAR_ORDER] = v ?? ""; SaveConfig(); }
 
         // Get/Set exclude character name
         public bool IsExcludeCharacterNameEnabled()

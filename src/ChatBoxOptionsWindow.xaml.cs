@@ -402,6 +402,12 @@ namespace RSTGameTranslation
             this.Close();
         }
         
+        private void CustomizeToolbarButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new ChatBoxToolbarSettingsWindow { Owner = this };
+            win.ShowDialog();
+        }
+
         private void DefaultsButton_Click(object sender, RoutedEventArgs e)
         {
             try

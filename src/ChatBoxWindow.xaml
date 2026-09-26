@@ -143,73 +143,60 @@
                 Panel.ZIndex="1"
                 CornerRadius="0,0,0,0">
             <DockPanel LastChildFill="True">
-                <Button Content="X" Width="28" Height="28" 
+                <Button Content="X" Width="28" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource CloseButtonStyle}"
                         Click="CloseButton_Click"
                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Close_Tooltip]}"/>
-                <Button x:Name="fontIncreaseButton" Content="A+" Width="34" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="FontIncreaseButton_Click"
-                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontIncrease_Tooltip]}"/>
-                <Button x:Name="fontDecreaseButton" Content="A-" Width="34" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="FontDecreaseButton_Click"
-                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontDecrease_Tooltip]}"/>
-                <Button x:Name="clearButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear]}" Width="50" Height="28" 
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="ClearButton_Click"
-                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear_Tooltip]}"/>
-                <Button x:Name="modeButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_TranslatedText]}" Width="Auto" MinWidth="50" Height="28" 
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="ModeButton_Click"
-                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_Tooltip]}"/>
-                <Button x:Name="optionsButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options]}" Width="60" Height="28" 
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="OptionsButton_Click"
-                        ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options_Tooltip]}"/>
-                <Button x:Name="historyButton" Content="Lịch sử" Width="60" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="HistoryButton_Click"
-                        ToolTip="Xem lại tất cả bản dịch trước đó (học tiếng Anh / nhớ ngữ cảnh)"/>
-                <Button x:Name="cbStartStopButton" Content="▶ Start" Width="70" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="StartStopButton_Click"
-                        ToolTip="Bắt đầu / Dừng dịch (không cần mở app chính)"/>
-                <Button x:Name="cbTtsButton" Content="🔊 Đọc" Width="64" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="TtsButton_Click"
-                        ToolTip="Đọc bản dịch thành tiếng (TTS) — bật/tắt"/>
-                <Button x:Name="cbRetryButton" Content="↻ Dịch lại" Width="84" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="RetryButton_Click"
-                        ToolTip="Dịch lại màn hiện tại (khi lỗi mạng / dịch sai)"/>
-                <Button x:Name="cbCancelButton" Content="✕ Hủy" Width="58" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="CancelButton_Click"
-                        ToolTip="Hủy request đang gửi (khi mạng lâu / treo)"/>
-                <Button x:Name="cbShowAreaButton" Content="▦ Vùng" Width="66" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="ShowAreaButton_Click"
-                        ToolTip="Hiện / ẩn viền vùng đang chọn"/>
-                <Button x:Name="cbSelectAreaButton" Content="⬚ Chọn vùng" Width="100" Height="28"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource HeaderButtonStyle}"
-                        Click="SelectAreaButton_Click"
-                        ToolTip="Chọn vùng dịch mới (giống phím tắt Alt + Q)"/>
-                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White"
-                           VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
+                <!-- Customizable toolbar: buttons carry a stable Tag id; order/visibility is driven by
+                     ApplyToolbarLayout() from config (customize via Options → "Tùy chỉnh thanh nút"). -->
+                <StackPanel x:Name="toolbarPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White"
+                               VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
+                    <Button x:Name="cbSelectAreaButton" Tag="selectArea" Content="⬚ Chọn vùng" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="SelectAreaButton_Click"
+                            ToolTip="Chọn vùng dịch mới (giống phím tắt Alt + Q)"/>
+                    <Button x:Name="cbShowAreaButton" Tag="showArea" Content="▦ Vùng" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="ShowAreaButton_Click"
+                            ToolTip="Hiện / ẩn viền vùng đang chọn"/>
+                    <Button x:Name="cbCancelButton" Tag="cancel" Content="✕ Hủy" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="CancelButton_Click"
+                            ToolTip="Hủy request đang gửi (khi mạng lâu / treo)"/>
+                    <Button x:Name="cbRetryButton" Tag="retry" Content="↻ Dịch lại" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="RetryButton_Click"
+                            ToolTip="Dịch lại màn hiện tại (khi lỗi mạng / dịch sai)"/>
+                    <Button x:Name="cbTtsButton" Tag="tts" Content="🔊 Đọc" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="TtsButton_Click"
+                            ToolTip="Đọc bản dịch thành tiếng (TTS) — bật/tắt"/>
+                    <Button x:Name="cbStartStopButton" Tag="startStop" Content="▶ Start" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="StartStopButton_Click"
+                            ToolTip="Bắt đầu / Dừng dịch (không cần mở app chính)"/>
+                    <Button x:Name="historyButton" Tag="history" Content="Lịch sử" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HistoryButton_Click"
+                            ToolTip="Xem lại tất cả bản dịch trước đó (học tiếng Anh / nhớ ngữ cảnh)"/>
+                    <Button x:Name="optionsButton" Tag="options" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options]}" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="OptionsButton_Click"
+                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Options_Tooltip]}"/>
+                    <Button x:Name="modeButton" Tag="mode" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_TranslatedText]}" MinWidth="50" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="ModeButton_Click"
+                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Mode_Tooltip]}"/>
+                    <Button x:Name="clearButton" Tag="clear" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear]}" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="ClearButton_Click"
+                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Clear_Tooltip]}"/>
+                    <Button x:Name="fontDecreaseButton" Tag="fontDecrease" Content="A-" Width="34" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="FontDecreaseButton_Click"
+                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontDecrease_Tooltip]}"/>
+                    <Button x:Name="fontIncreaseButton" Tag="fontIncrease" Content="A+" Width="34" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="FontIncreaseButton_Click"
+                            ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_FontIncrease_Tooltip]}"/>
+                    <!-- Extra actions, hidden by default; enable via the customize dialog -->
+                    <Button x:Name="cbOverlayButton" Tag="overlay" Content="📺 Lớp phủ" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="OverlayButton_Click"
+                            ToolTip="Bật / tắt lớp phủ (Overlay)"/>
+                    <Button x:Name="cbAudioButton" Tag="audio" Content="🎤 Âm thanh" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="AudioButton_Click"
+                            ToolTip="Bật / tắt Dịch âm thanh (STT) — thử nghiệm"/>
+                </StackPanel>
             </DockPanel>
         </Border>
         
