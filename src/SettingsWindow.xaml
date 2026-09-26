@@ -8,8 +8,10 @@
     xmlns:local="clr-namespace:RSTGameTranslation"
     mc:Ignorable="d"
     Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Settings_Title]}"
-    Height="600"
+    Height="880"
     Width="1180"
+    MinHeight="600"
+    MinWidth="900"
     Background="{DynamicResource SurfaceBrush}"
     Foreground="{DynamicResource TextBrush}"
     WindowStyle="SingleBorderWindow"
@@ -1920,7 +1922,7 @@
                                         </Border>
                                         
                                         <!-- Items -->
-                                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                        <ScrollViewer MaxHeight="460" VerticalScrollBarVisibility="Auto">
                                             <StackPanel>
                                                 <!-- Item Template -->
                                                 <Grid Margin="10,5">
