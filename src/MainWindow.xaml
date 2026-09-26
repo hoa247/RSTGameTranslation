@@ -544,11 +544,26 @@
                                     <Button x:Name="audioServiceButton" Style="{StaticResource ModernButton}"
                                             Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
                                             Background="#6366f1" Click="AudioServiceButton_Click"
-                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            ToolTip="STT — Nghe tiếng game rồi dịch (tắt cho game không có lời thoại thật)">
                                         <Button.ContentTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="🎤 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
+                                    <Button x:Name="ttsToggleButton" Style="{StaticResource ModernButton}"
+                                            Content="Đọc bản dịch: Tắt"
+                                            Background="#6366f1" Click="TtsToggleButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True"
+                                            ToolTip="TTS — Đọc bản dịch (phụ đề OCR) thành giọng nói. Cần bấm Start để có bản dịch.">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🔊 " FontSize="10" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </DataTemplate>

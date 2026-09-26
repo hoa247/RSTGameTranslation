@@ -702,6 +702,8 @@ namespace RSTGameTranslation
                 if (cbStartStopButton == null) return;
                 bool started = MainWindow.Instance != null && MainWindow.Instance.GetIsStarted();
                 cbStartStopButton.Content = started ? "⏸ Dừng" : "▶ Start";
+                if (cbTtsButton != null)
+                    cbTtsButton.Content = ConfigManager.Instance.IsTtsEnabled() ? "🔊" : "🔇";
             }
             catch { }
         }
@@ -710,6 +712,16 @@ namespace RSTGameTranslation
         {
             KeyboardShortcuts.InvokeFunctionFromClick("Start/Stop");
             UpdateStartStopButton();
+        }
+
+        // TTS = read the translation aloud (separate from the STT "Dịch âm thanh" audio-listening).
+        private void TtsButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool enabled = !ConfigManager.Instance.IsTtsEnabled();
+            ConfigManager.Instance.SetTtsEnabled(enabled);
+            ConfigManager.Instance.SaveConfig();
+            MainWindow.Instance?.UpdateTtsButtonUI(enabled);
+            if (cbTtsButton != null) cbTtsButton.Content = enabled ? "🔊" : "🔇";
         }
 
         private void RetryButton_Click(object sender, RoutedEventArgs e)

@@ -183,6 +183,11 @@
                         Style="{StaticResource HeaderButtonStyle}"
                         Click="StartStopButton_Click"
                         ToolTip="Bắt đầu / Dừng dịch (không cần mở app chính)"/>
+                <Button x:Name="cbTtsButton" Content="🔊" Width="30" Height="28"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource HeaderButtonStyle}"
+                        Click="TtsButton_Click"
+                        ToolTip="Đọc bản dịch thành tiếng (TTS) — bật/tắt"/>
                 <Button x:Name="cbRetryButton" Content="↻" Width="30" Height="28"
                         DockPanel.Dock="Right"
                         Style="{StaticResource HeaderButtonStyle}"

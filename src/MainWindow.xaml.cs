@@ -865,6 +865,31 @@ namespace RSTGameTranslation
             await ToggleAudioServiceAsync();
         }
 
+        // TTS = read the (OCR) translation aloud. Separate from STT ("Dịch âm thanh" = listen to audio).
+        private void TtsToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool enabled = !ConfigManager.Instance.IsTtsEnabled();
+            ConfigManager.Instance.SetTtsEnabled(enabled);
+            ConfigManager.Instance.SaveConfig();
+            UpdateTtsButtonUI(enabled);
+        }
+
+        public void UpdateTtsButtonUI(bool enabled)
+        {
+            try
+            {
+                if (ttsToggleButton == null) return;
+                Dispatcher.Invoke(() =>
+                {
+                    ttsToggleButton.Content = enabled ? "Đọc bản dịch: Bật" : "Đọc bản dịch: Tắt";
+                    ttsToggleButton.Background = enabled
+                        ? new SolidColorBrush(Color.FromRgb(20, 180, 20))    // green when on
+                        : new SolidColorBrush(Color.FromRgb(99, 102, 241));  // indigo when off
+                });
+            }
+            catch (Exception ex) { Console.WriteLine($"UpdateTtsButtonUI failed: {ex.Message}"); }
+        }
+
         // Shared toggle method so UI button and hotkey can call same logic
         public async System.Threading.Tasks.Task ToggleAudioServiceAsync()
         {
@@ -1238,6 +1263,7 @@ namespace RSTGameTranslation
             bool audioEnabled = false;
             ConfigManager.Instance.SetAudioServiceAutoTranslateEnabled(audioEnabled);
             UpdateAudioServiceButtonUI(audioEnabled);
+            UpdateTtsButtonUI(ConfigManager.Instance.IsTtsEnabled());
             UpdateThemeToggleButtonUI();
 
             // Initialization is complete, now we can save settings changes
