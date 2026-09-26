@@ -26,6 +26,7 @@ namespace RSTGameTranslation
         private readonly ObservableCollection<ToolbarItemVm> _items = new();
         private ToolbarItemVm? _dragged;
         private Point _startPoint;
+        private ListBoxItem? _dropHighlight;
 
         public ChatBoxToolbarSettingsWindow()
         {
@@ -79,6 +80,37 @@ namespace RSTGameTranslation
             DragDrop.DoDragDrop(itemsList, _dragged, DragDropEffects.Move);
         }
 
+        // Highlight the row the item would drop onto (top accent line + faint fill).
+        private void SetDropHighlight(ListBoxItem? lbi)
+        {
+            if (ReferenceEquals(_dropHighlight, lbi)) return;
+            if (_dropHighlight != null)
+            {
+                _dropHighlight.BorderThickness = new Thickness(0);
+                _dropHighlight.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Transparent);
+            }
+            _dropHighlight = lbi;
+            if (_dropHighlight != null)
+            {
+                _dropHighlight.BorderBrush = System.Windows.SystemColors.HighlightBrush;
+                _dropHighlight.BorderThickness = new Thickness(0, 2, 0, 0);
+                _dropHighlight.Background = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(48, 0, 120, 215));
+            }
+        }
+
+        private void Item_DragEnter(object sender, DragEventArgs e)
+        {
+            if (_dragged != null && sender is ListBoxItem lbi && !ReferenceEquals(lbi.DataContext, _dragged))
+                SetDropHighlight(lbi);
+        }
+
+        private void Item_DragLeave(object sender, DragEventArgs e)
+        {
+            if (sender is ListBoxItem lbi && ReferenceEquals(_dropHighlight, lbi))
+                SetDropHighlight(null);
+        }
+
         // Drop onto another row -> move dragged item to that row's position.
         private void Item_Drop(object sender, DragEventArgs e)
         {
@@ -92,6 +124,7 @@ namespace RSTGameTranslation
                 if (oldIndex >= 0 && newIndex >= 0)
                     _items.Move(oldIndex, newIndex);
             }
+            SetDropHighlight(null);
             _dragged = null;
             e.Handled = true;
         }
@@ -105,6 +138,7 @@ namespace RSTGameTranslation
                 if (oldIndex >= 0)
                     _items.Move(oldIndex, _items.Count - 1);
             }
+            SetDropHighlight(null);
             _dragged = null;
         }
 

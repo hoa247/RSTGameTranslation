@@ -39,6 +39,9 @@
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_PreviewMouseLeftButtonDown"/>
                         <EventSetter Event="Drop" Handler="Item_Drop"/>
+                        <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
+                        <EventSetter Event="DragOver" Handler="Item_DragEnter"/>
+                        <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
                     </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
