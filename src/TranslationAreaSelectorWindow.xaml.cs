@@ -75,7 +75,9 @@ namespace RSTGameTranslation
             this.MouseMove += OnMouseMove;
             this.MouseLeftButtonUp += OnMouseLeftButtonUp;
             this.KeyDown += OnKeyDown;
-            
+            // Grab focus once shown so the Escape key is reliably delivered to cancel the selection.
+            this.Loaded += (s, e) => { this.Activate(); this.Focus(); Keyboard.Focus(this); };
+
             // Set window size to cover selected screen
             SetWindowToSelectedScreen();
         }

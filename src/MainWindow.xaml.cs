@@ -1672,6 +1672,15 @@ namespace RSTGameTranslation
                 // resume the last session so a single Start press picks up where we left off.
                 TryRestoreSession();
 
+                // Require a capture source before starting: a chosen window (app) OR a selected area.
+                // Without either we would capture the whole screen (the original bug) — warn instead.
+                if (!isCapturingWindow && !hasSelectedTranslationArea)
+                {
+                    ShowFastNotification("Chưa thể bắt đầu",
+                        "Hãy chọn ứng dụng (nút Window) hoặc chọn vùng dịch (Alt+Q) trước khi bấm Bắt đầu.");
+                    return;
+                }
+
                 if (isReady)
                 {
                     isStarted = true;
