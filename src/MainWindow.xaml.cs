@@ -1735,6 +1735,12 @@ namespace RSTGameTranslation
                         ToggleMonitorWindow();
                     }
                 }
+
+                if (cfg.IsStartAutoShowAreaEnabled())
+                {
+                    // Directly ensure the selected-area border is visible (idempotent, unlike the toggle).
+                    MonitorWindow.Instance.BorderThickness = new Thickness(1);
+                }
             }
             catch (Exception ex)
             {

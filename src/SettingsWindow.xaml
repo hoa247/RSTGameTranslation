@@ -2292,6 +2292,8 @@
                                           Margin="0,4" Click="StartAutoOption_Changed"/>
                                 <CheckBox x:Name="startAutoOverlayCheckBox" Content="📺 Lớp phủ (Overlay)"
                                           Margin="0,4" Click="StartAutoOption_Changed"/>
+                                <CheckBox x:Name="startAutoShowAreaCheckBox" Content="▦ Hiện vùng đang chọn"
+                                          Margin="0,4" Click="StartAutoOption_Changed"/>
                             </StackPanel>
                         </GroupBox>
                         <!-- Audio Processing Settings -->

@@ -138,6 +138,7 @@ namespace RSTGameTranslation
         public const string START_AUTO_TTS = "start_auto_tts";
         public const string START_AUTO_CHATBOX = "start_auto_chatbox";
         public const string START_AUTO_OVERLAY = "start_auto_overlay";
+        public const string START_AUTO_SHOWAREA = "start_auto_showarea";
         public const string TTS_SERVICE = "tts_service";
         public const string ELEVENLABS_API_KEY = "elevenlabs_api_key";
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
@@ -2367,6 +2368,9 @@ namespace RSTGameTranslation
 
         public bool IsStartAutoOverlayEnabled() => GetValue(START_AUTO_OVERLAY, "false").ToLower() == "true";
         public void SetStartAutoOverlayEnabled(bool v) { _configValues[START_AUTO_OVERLAY] = v.ToString().ToLower(); SaveConfig(); }
+
+        public bool IsStartAutoShowAreaEnabled() => GetValue(START_AUTO_SHOWAREA, "false").ToLower() == "true";
+        public void SetStartAutoShowAreaEnabled(bool v) { _configValues[START_AUTO_SHOWAREA] = v.ToString().ToLower(); SaveConfig(); }
 
         // Get/Set exclude character name
         public bool IsExcludeCharacterNameEnabled()

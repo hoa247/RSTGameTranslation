@@ -1218,6 +1218,7 @@ namespace RSTGameTranslation
             startAutoTtsCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoTtsEnabled();
             startAutoChatBoxCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoChatBoxEnabled();
             startAutoOverlayCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoOverlayEnabled();
+            startAutoShowAreaCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoShowAreaEnabled();
 
             // Set Exclude character name
             excludeCharacterNameCheckBox.IsChecked = ConfigManager.Instance.IsExcludeCharacterNameEnabled();
@@ -1601,6 +1602,7 @@ namespace RSTGameTranslation
             ConfigManager.Instance.SetStartAutoTtsEnabled(startAutoTtsCheckBox.IsChecked == true);
             ConfigManager.Instance.SetStartAutoChatBoxEnabled(startAutoChatBoxCheckBox.IsChecked == true);
             ConfigManager.Instance.SetStartAutoOverlayEnabled(startAutoOverlayCheckBox.IsChecked == true);
+            ConfigManager.Instance.SetStartAutoShowAreaEnabled(startAutoShowAreaCheckBox.IsChecked == true);
         }
 
         private static void SelectLanguageByCode(ComboBox comboBox, string code)
