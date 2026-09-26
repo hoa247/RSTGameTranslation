@@ -7,6 +7,7 @@ Tất cả **compile 0 lỗi** (`dotnet build RST.csproj`). Build/chạy: `build
 
 ## Commit phần 2 (mới → cũ)
 ```
+53b7192 feat: per-function enable/disable in settings (hotkey unregistered + toolbar button greyed when off)
 b9fe562 feat: loading overlay (spinner) covers old text while translating; reveals result on arrival
 c297f0b feat: bottom-right translating/stopped status indicator (dot + colored text) in chatbox
 b11d659 feat: color chatbox Start/Stop button green (translating) / red (stopped)
@@ -48,6 +49,15 @@ d5f4b24 feat: validate capture source before Start; ensure Esc cancels area sele
 - **Badge góc phải dưới**: chấm + chữ 🟢"Đang dịch" / 🔴"Đã dừng" (`cbStatusIndicator`/`cbStatusDot`/`cbStatusLabel`), nền bo tròn tối cho dễ đọc.
 - **Màn loading khi đang dịch** (`b9fe562`): `cbLoadingOverlay` phủ vùng chat che text cũ + **spinner xoay** (`cbSpinnerRotate` + `_loadingSpinnerTimer` 28ms) + "Đang dịch..." + tên service. Hook: `ShowTranslationStatus(false)`→`ShowLoading`; `HideTranslationStatus()`→`HideLoading` (đã được `OnTranslationWasAdded` gọi, bao cả lỗi/hủy). → clear-then-show, dễ nhận biết dịch xong.
 
+## 5. Bật / tắt hẳn từng chức năng (`53b7192`)
+- **Settings → tab Phím tắt → nhóm "Bật / tắt chức năng"**: 18 checkbox (Start/Stop, Overlay, ChatBox, Setting, Log, Select/Show/Clear Area(s), Clear Selected Area, Select Exclude Region, Audio Service, Swap Languages, Retry Translation, Area 1–5). Bỏ tick = **tắt hẳn**.
+- Khi tắt: (a) **hotkey KHÔNG đăng ký** → phím lọt xuống game (vd Alt+V thôi đổi ngôn ngữ); (b) **nút tương ứng trên thanh ChatBox mờ + `IsEnabled=false`** (opacity 0.4); (c) chặn mọi ngả qua `DispatchFunction`.
+- Config: `disabled_functions` (CSV) + `ConfigManager.IsFunctionEnabled/SetFunctionEnabled`.
+- `KeyboardShortcuts`: gate ở `RegisterFunctionHotkey` (skip đăng ký) + `DispatchFunction` (chặn invoke).
+- Handler `FunctionEnabledCheckBox_Changed` (SettingsWindow.xaml.cs, `functionToggleWrap`): lưu config → `RefreshHotkeys()` + `SetMainWindowHandle` + `ChatBoxWindow.ApplyToolbarLayout()` (cập nhật mờ nút ngay).
+- DRY: gộp `_tagToFunction` (ChatBoxWindow) dùng cho cả dispatch proxy button lẫn greying (thay cho `_proxyTagToFunction` cũ).
+- **Lưu ý:** greying chỉ áp cho thanh nút ChatBox; nút ở màn hình chính (Overlay/Cài đặt...) chưa greyed (là click chủ động, ít bấm nhầm).
+
 ---
 
 ## File đã đụng (phần 2)
@@ -59,6 +69,9 @@ d5f4b24 feat: validate capture source before Start; ensure Esc cancels area sele
 - `SettingsWindow.xaml` — combineKey2 thêm phím.
 - `MainWindow.xaml.cs` — validate Start, FocusCapturedWindow + SetForegroundWindow, RestoreSessionAreas refresh overlay.
 - `TranslationAreaSelectorWindow.xaml.cs` — focus grab cho ESC.
+- `ConfigManager.cs` — `disabled_functions` + IsFunctionEnabled/SetFunctionEnabled.
+- `KeyboardShortcuts.cs` — gate register + dispatch theo function on/off.
+- `SettingsWindow.xaml`/`.cs` — nhóm checkbox bật/tắt chức năng + handler.
 
 ## Cần TEST thực tế
 - [ ] 🧰: ẩn/hiện nút, kéo–thả (có highlight), ⤒/⤓, Lưu → thanh cập nhật; mở lại app còn giữ.
@@ -67,6 +80,7 @@ d5f4b24 feat: validate capture source before Start; ensure Esc cancels area sele
 - [ ] Start khi chưa có app+vùng → hiện notice, không start. ESC hủy chọn vùng.
 - [ ] Mở app → Start ngay: viền vùng cũ hiện luôn; cửa sổ game nhảy lên trước.
 - [ ] Start/Dừng: nút + badge góc + màn loading spinner hoạt động; dịch xong hiện bản mới.
+- [ ] Bật/tắt chức năng: bỏ tick "Đổi ngôn ngữ" → Alt+V hết tác dụng + nút 🔁 trên ChatBox mờ; tick lại → chạy lại.
 
 ## Câu hỏi mở
 - Nhãn/tooltip nút + text loading hardcode tiếng Việt (chưa qua LocalizationManager) → đổi ngôn ngữ giao diện sẽ không dịch.
