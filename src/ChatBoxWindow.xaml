@@ -138,19 +138,21 @@
     
     <Grid>
         <!-- Header/title bar - always has minimum opacity -->
-        <Border x:Name="headerBar" Height="28" VerticalAlignment="Top" Background="#CC202020" 
-                MouseLeftButtonDown="Header_MouseLeftButtonDown" 
+        <Border x:Name="headerBar" MinHeight="28" VerticalAlignment="Top" Background="#CC202020"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown"
+                SizeChanged="HeaderBar_SizeChanged"
                 Panel.ZIndex="1"
                 CornerRadius="0,0,0,0">
             <DockPanel LastChildFill="True">
                 <Button Content="X" Width="28" Height="28"
-                        DockPanel.Dock="Right"
+                        DockPanel.Dock="Right" VerticalAlignment="Top"
                         Style="{StaticResource CloseButtonStyle}"
                         Click="CloseButton_Click"
                         ToolTip="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Btn_Close_Tooltip]}"/>
-                <!-- Customizable toolbar: buttons carry a stable Tag id; order/visibility is driven by
-                     ApplyToolbarLayout() from config (customize via Options → "Tùy chỉnh thanh nút"). -->
-                <StackPanel x:Name="toolbarPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Customizable toolbar: WrapPanel so buttons flow to a new row when the window narrows.
+                     Buttons carry a stable Tag id; order/visibility is driven by ApplyToolbarLayout() from
+                     config (customize via Options → "Tùy chỉnh thanh nút"). -->
+                <WrapPanel x:Name="toolbarPanel" Orientation="Horizontal" VerticalAlignment="Top">
                     <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Header_RecentText]}" Foreground="White"
                                VerticalAlignment="Center" Margin="10,0" FontWeight="SemiBold"/>
                     <Button x:Name="cbSelectAreaButton" Tag="selectArea" Content="⬚ Chọn vùng" Height="28"
@@ -196,7 +198,44 @@
                     <Button x:Name="cbAudioButton" Tag="audio" Content="🎤 Âm thanh" Height="28"
                             Style="{StaticResource HeaderButtonStyle}" Click="AudioButton_Click"
                             ToolTip="Bật / tắt Dịch âm thanh (STT) — thử nghiệm"/>
-                </StackPanel>
+                    <!-- Global-hotkey actions (all hidden by default; enable via customize dialog) -->
+                    <Button x:Name="cbToggleChatBoxButton" Tag="toggleChatBox" Content="💬 Hộp thoại" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Bật / tắt hộp thoại (Alt + C)"/>
+                    <Button x:Name="cbSettingsButton" Tag="settings" Content="⚙ Cài đặt" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Mở cài đặt (Alt + P)"/>
+                    <Button x:Name="cbLogButton" Tag="log" Content="📋 Nhật ký" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Bật / tắt nhật ký (Alt + L)"/>
+                    <Button x:Name="cbSwapLangButton" Tag="swapLang" Content="🔁 Đổi ngôn ngữ" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Đổi ngôn ngữ nguồn ↔ đích (Alt + V)"/>
+                    <Button x:Name="cbClearAreasButton" Tag="clearAreas" Content="🗑 Xóa tất cả vùng" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Xóa tất cả vùng (Alt + R)"/>
+                    <Button x:Name="cbClearSelectedAreaButton" Tag="clearSelectedArea" Content="✂ Xóa vùng chọn" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Xóa vùng đã chọn (Alt + H)"/>
+                    <Button x:Name="cbExcludeRegionButton" Tag="excludeRegion" Content="⊘ Vùng loại trừ" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng loại trừ (Alt + X)"/>
+                    <Button x:Name="cbArea1Button" Tag="area1" Content="① Vùng 1" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng 1 (Alt + 1)"/>
+                    <Button x:Name="cbArea2Button" Tag="area2" Content="② Vùng 2" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng 2 (Alt + 2)"/>
+                    <Button x:Name="cbArea3Button" Tag="area3" Content="③ Vùng 3" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng 3 (Alt + 3)"/>
+                    <Button x:Name="cbArea4Button" Tag="area4" Content="④ Vùng 4" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng 4 (Alt + 4)"/>
+                    <Button x:Name="cbArea5Button" Tag="area5" Content="⑤ Vùng 5" Height="28"
+                            Style="{StaticResource HeaderButtonStyle}" Click="HotkeyProxyButton_Click"
+                            ToolTip="Chọn vùng 5 (Alt + 5)"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
         

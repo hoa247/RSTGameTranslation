@@ -755,6 +755,49 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Audio Service");
         }
 
+        // Maps a toolbar button Tag id to the global-hotkey function it triggers.
+        private static readonly Dictionary<string, string> _proxyTagToFunction = new()
+        {
+            { "toggleChatBox", "ChatBox" },
+            { "settings", "Setting" },
+            { "log", "Log" },
+            { "swapLang", "Swap Languages" },
+            { "clearAreas", "Clear Areas" },
+            { "clearSelectedArea", "Clear Selected Area" },
+            { "excludeRegion", "Select Exclude Region" },
+            { "area1", "Area 1" },
+            { "area2", "Area 2" },
+            { "area3", "Area 3" },
+            { "area4", "Area 4" },
+            { "area5", "Area 5" },
+        };
+
+        // Single handler for all extra toolbar buttons that simply fire a global hotkey function.
+        private void HotkeyProxyButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button b && b.Tag is string id &&
+                _proxyTagToFunction.TryGetValue(id, out var function))
+            {
+                KeyboardShortcuts.InvokeFunctionFromClick(function);
+            }
+        }
+
+        // The header WrapPanel can grow to multiple rows; keep the chat content and the
+        // toggle-borders button below it by tracking the header's actual height.
+        private void HeaderBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            try
+            {
+                double h = headerBar.ActualHeight;
+                if (h < 28) h = 28;
+                if (chatScrollViewer != null)
+                    chatScrollViewer.Margin = new Thickness(0, h, 0, 30);
+                if (toggleBordersButton != null)
+                    toggleBordersButton.Margin = new Thickness(0, h + 2, 10, 0);
+            }
+            catch { }
+        }
+
         // Every toolbar action: id -> friendly name. Used by the customize dialog to list all options.
         public static readonly List<KeyValuePair<string, string>> ToolbarCatalog = new List<KeyValuePair<string, string>>
         {
@@ -770,8 +813,20 @@ namespace RSTGameTranslation
             new("clear", "Xóa"),
             new("fontDecrease", "A− (nhỏ chữ)"),
             new("fontIncrease", "A+ (to chữ)"),
-            new("overlay", "📺 Lớp phủ"),
-            new("audio", "🎤 Âm thanh (STT)"),
+            new("overlay", "📺 Lớp phủ (Alt+F)"),
+            new("audio", "🎤 Âm thanh / STT (Alt+K)"),
+            new("toggleChatBox", "💬 Bật/tắt hộp thoại (Alt+C)"),
+            new("settings", "⚙ Mở cài đặt (Alt+P)"),
+            new("log", "📋 Bật/tắt nhật ký (Alt+L)"),
+            new("swapLang", "🔁 Đổi ngôn ngữ (Alt+V)"),
+            new("clearAreas", "🗑 Xóa tất cả vùng (Alt+R)"),
+            new("clearSelectedArea", "✂ Xóa vùng đã chọn (Alt+H)"),
+            new("excludeRegion", "⊘ Chọn vùng loại trừ (Alt+X)"),
+            new("area1", "① Chọn vùng 1 (Alt+1)"),
+            new("area2", "② Chọn vùng 2 (Alt+2)"),
+            new("area3", "③ Chọn vùng 3 (Alt+3)"),
+            new("area4", "④ Chọn vùng 4 (Alt+4)"),
+            new("area5", "⑤ Chọn vùng 5 (Alt+5)"),
         };
 
         // Rebuild the header toolbar from the saved config: only visible ids, in saved order.

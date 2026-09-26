@@ -59,6 +59,13 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
+
+                <!-- Toolbar customization (kept at the top for quick access) -->
+                <GroupBox Header="Thanh nút (Toolbar)" Margin="0,5,0,10" Padding="5">
+                    <Button x:Name="customizeToolbarButton" Content="🧰 Tùy chỉnh thanh nút (hiện/ẩn · thứ tự kéo–thả)"
+                            Margin="0,5" HorizontalAlignment="Left" Padding="10,6"
+                            Click="CustomizeToolbarButton_Click"/>
+                </GroupBox>
                 <!-- Background settings -->
                 <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBoxOptions_Grp_Background]}" Margin="0,5,0,10" Padding="5">
                     <StackPanel>
@@ -213,12 +220,6 @@
                     </DockPanel>
                 </GroupBox>
 
-                <!-- Toolbar customization -->
-                <GroupBox Header="Thanh nút (Toolbar)" Margin="0,5,0,10" Padding="5">
-                    <Button x:Name="customizeToolbarButton" Content="🧰 Tùy chỉnh thanh nút (hiện/ẩn · thứ tự kéo–thả)"
-                            Margin="0,5" HorizontalAlignment="Left" Padding="10,6"
-                            Click="CustomizeToolbarButton_Click"/>
-                </GroupBox>
             </StackPanel>
         </ScrollViewer>
 
