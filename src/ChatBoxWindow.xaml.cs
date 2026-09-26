@@ -130,6 +130,14 @@ namespace RSTGameTranslation
             _cbStateTimer.Tick += (s, e) => UpdateStartStopButton();
             _cbStateTimer.Start();
 
+            // Spinner rotation for the "Đang dịch..." loading overlay.
+            _loadingSpinnerTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(28) };
+            _loadingSpinnerTimer.Tick += (s, e) =>
+            {
+                if (cbSpinnerRotate != null)
+                    cbSpinnerRotate.Angle = (cbSpinnerRotate.Angle + 12) % 360;
+            };
+
             // Initialize the RichTextBox with a properly configured document
             chatHistoryText.Document = new FlowDocument()
             {
@@ -692,6 +700,27 @@ namespace RSTGameTranslation
         }
 
         private System.Windows.Threading.DispatcherTimer? _cbStateTimer;
+        private System.Windows.Threading.DispatcherTimer? _loadingSpinnerTimer;
+
+        // Show the full-content loading overlay (spinner) and hide the previous translation while
+        // we wait for the service, so the user clearly sees when a fresh translation lands.
+        public void ShowLoading()
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(ShowLoading); return; }
+            if (cbLoadingOverlay == null) return;
+            if (cbLoadingSub != null)
+                cbLoadingSub.Text = ConfigManager.Instance.GetCurrentTranslationService();
+            cbLoadingOverlay.Visibility = Visibility.Visible;
+            _loadingSpinnerTimer?.Start();
+        }
+
+        public void HideLoading()
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(HideLoading); return; }
+            if (cbLoadingOverlay == null) return;
+            cbLoadingOverlay.Visibility = Visibility.Collapsed;
+            _loadingSpinnerTimer?.Stop();
+        }
 
         // Reflect the app's running state on the ChatBox Start/Stop button so the user can
         // control translation from here without opening the main app window.
@@ -813,6 +842,8 @@ namespace RSTGameTranslation
                 if (h < 28) h = 28;
                 if (chatScrollViewer != null)
                     chatScrollViewer.Margin = new Thickness(0, h, 0, 30);
+                if (cbLoadingOverlay != null)
+                    cbLoadingOverlay.Margin = new Thickness(0, h, 0, 30);
                 if (toggleBordersButton != null)
                     toggleBordersButton.Margin = new Thickness(0, h + 2, 10, 0);
             }
@@ -1546,6 +1577,11 @@ namespace RSTGameTranslation
                 return;
             }
 
+            // While actually waiting for the translation service, cover the old text with the
+            // loading overlay so the new result is unmistakable when it appears.
+            if (!bSettling)
+                ShowLoading();
+
             if (translationStatusPanel != null && _areBordersVisible)
             {
                 // Show the translation status panel
@@ -1581,6 +1617,8 @@ namespace RSTGameTranslation
                 Dispatcher.Invoke(() => HideTranslationStatus());
                 return;
             }
+
+            HideLoading();
 
             if (translationStatusPanel != null)
             {

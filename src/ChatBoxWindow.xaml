@@ -272,8 +272,29 @@
             </RichTextBox>
         </ScrollViewer>
         
+        <!-- Full-content loading overlay: covers the old translation while waiting for the service,
+             so it's obvious a fresh translation is on the way (updated margin in HeaderBar_SizeChanged). -->
+        <Border x:Name="cbLoadingOverlay" Visibility="Collapsed" Panel.ZIndex="3"
+                Background="#E01A1A1A" Margin="0,28,0,30">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid Width="52" Height="52">
+                    <Ellipse Width="52" Height="52" Stroke="#33FFFFFF" StrokeThickness="5"/>
+                    <Path Stroke="#4ADE80" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M 26,3 A 23,23 0 0 1 49,26" RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform x:Name="cbSpinnerRotate" Angle="0"/>
+                        </Path.RenderTransform>
+                    </Path>
+                </Grid>
+                <TextBlock Text="Đang dịch..." Foreground="White" FontWeight="SemiBold" FontSize="15"
+                           Margin="0,16,0,0" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="cbLoadingSub" Text="" Foreground="#99CCCCCC" FontSize="11"
+                           Margin="0,4,0,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
         <!-- Translation in progress indicator -->
-        <Border x:Name="translationStatusPanel" 
+        <Border x:Name="translationStatusPanel"
                 Height="30" 
                 VerticalAlignment="Bottom" 
                 HorizontalAlignment="Stretch"
