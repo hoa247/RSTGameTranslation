@@ -706,6 +706,16 @@ namespace RSTGameTranslation
                 cbStartStopButton.Background = started
                     ? new SolidColorBrush(Color.FromRgb(20, 180, 20))
                     : new SolidColorBrush(Color.FromRgb(220, 60, 60));
+
+                // Bottom-right status: green dot + "Đang dịch" / red dot + "Đã dừng".
+                if (cbStatusDot != null && cbStatusLabel != null)
+                {
+                    var green = new SolidColorBrush(Color.FromRgb(46, 204, 64));
+                    var red = new SolidColorBrush(Color.FromRgb(255, 90, 90));
+                    cbStatusDot.Fill = started ? green : red;
+                    cbStatusLabel.Foreground = started ? green : red;
+                    cbStatusLabel.Text = started ? "Đang dịch" : "Đã dừng";
+                }
                 if (cbTtsButton != null)
                     cbTtsButton.Content = ConfigManager.Instance.IsTtsEnabled() ? "🔊" : "🔇";
             }

@@ -369,8 +369,17 @@
                   Stretch="Uniform"/>
         </Button>
         
+        <!-- Translating/stopped status indicator (bottom-right) -->
+        <Border x:Name="cbStatusIndicator" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Margin="0,0,24,6" Panel.ZIndex="4" Background="#B0202020" CornerRadius="8" Padding="8,3">
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="cbStatusDot" Width="10" Height="10" Fill="#DC3C3C" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBlock x:Name="cbStatusLabel" Text="Đã dừng" Foreground="#FF6B6B" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
         <!-- Resize grip indicator - improved with Path instead of Rectangle -->
-        <Path x:Name="resizeGrip" 
+        <Path x:Name="resizeGrip"
               Data="M 0,16 L 16,16 L 16,0 L 12,0 L 12,4 L 8,4 L 8,8 L 4,8 L 4,12 L 0,12 Z" 
               Fill="#99FFFFFF"
               HorizontalAlignment="Right" 
