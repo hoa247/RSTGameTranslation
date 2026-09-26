@@ -2555,25 +2555,54 @@ namespace RSTGameTranslation
                 else
                 {
                     var combinedText = string.Join("##|||##", _textObjects.Select(obj => obj.Text));
-                    var textsToTranslate = new List<object>
+                    string srcLang = MapLanguageCode(GetSourceLanguage());
+                    string tgtLang = MapLanguageCode(GetTargetLanguage());
+
+                    // Reuse a previously cached translation for the same on-screen text (per game
+                    // profile) instead of calling the LLM again — a big token saver when scenes repeat.
+                    string? translationResponse = TranslationCache.Lookup(combinedText, srcLang, tgtLang);
+                    bool fromCache = !string.IsNullOrEmpty(translationResponse);
+
+                    if (fromCache)
                     {
-                        new
+                        Console.WriteLine("[Cache] hit — skipping LLM call");
+                        RequestLogManager.Add(new RequestLogEntry
                         {
-                            id = "999",
-                            text = combinedText
-                        }
-                    };
-
-                    string jsonToTranslate = BuildTranslationRequestJson(textsToTranslate, previousContext, gameInfo);
-                    LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
-
-                    string? translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
-
-                    if (string.IsNullOrEmpty(translationResponse))
+                            Time = DateTime.Now,
+                            Service = currentService,
+                            Model = ConfigManager.Instance.GetGeminiModel(),
+                            RequestText = combinedText,
+                            ResponseText = translationResponse!,
+                            Success = true,
+                            CacheHit = true,
+                            Status = "CACHE HIT"
+                        });
+                    }
+                    else
                     {
-                        Console.WriteLine($"Translation failed with {currentService} - empty response");
-                        OnFinishedThings(true);
-                        return;
+                        var textsToTranslate = new List<object>
+                        {
+                            new
+                            {
+                                id = "999",
+                                text = combinedText
+                            }
+                        };
+
+                        string jsonToTranslate = BuildTranslationRequestJson(textsToTranslate, previousContext, gameInfo);
+                        LogManager.Instance.LogLlmRequest(prompt, jsonToTranslate);
+
+                        translationResponse = await translationService.TranslateAsync(jsonToTranslate, prompt);
+
+                        if (string.IsNullOrEmpty(translationResponse))
+                        {
+                            Console.WriteLine($"Translation failed with {currentService} - empty response");
+                            OnFinishedThings(true);
+                            return;
+                        }
+
+                        // Cache the raw response so the same screen text is free next time.
+                        TranslationCache.Save(combinedText, srcLang, tgtLang, translationResponse);
                     }
 
                     ProcessTranslatedJSON(translationResponse);

@@ -19,7 +19,8 @@ namespace RSTGameTranslation
         public int TotalTokens { get; set; }
         public double EstimatedCostUsd { get; set; }
         public bool Success { get; set; }
-        public string Status { get; set; } = string.Empty;        // "OK" or an error string
+        public bool CacheHit { get; set; }                        // served from local cache (no LLM call, $0)
+        public string Status { get; set; } = string.Empty;        // "OK", "CACHE HIT", or an error string
 
         public string TimeText => Time.ToString("HH:mm:ss");
         public string CostText => EstimatedCostUsd <= 0 ? "~$0" : $"${EstimatedCostUsd:F6}";
@@ -54,6 +55,9 @@ namespace RSTGameTranslation
                 while (_entries.Count > MAX_ENTRIES)
                     _entries.RemoveAt(0);
             }
+
+            // Persist for cross-session statistics (best-effort, never blocks).
+            TranslationDatabase.InsertRequestLog(entry, TranslationCache.CurrentProfile());
         }
 
         /// <summary>Newest-first snapshot for display.</summary>

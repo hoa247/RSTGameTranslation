@@ -27,7 +27,28 @@ namespace RSTGameTranslation
 
             RefreshLog();
             RefreshHistory();
+            RefreshStats();
         }
+
+        // ---------- Statistics ----------
+
+        private void RefreshStats()
+        {
+            string today = DateTime.Now.ToString("yyyy-MM-dd");
+            string profile = TranslationCache.CurrentProfile();
+
+            cacheCountText.Text = $"Cache: {TranslationCache.Count} câu đã lưu | Game: {profile}";
+            statsTodayText.Text = FormatStats(TranslationDatabase.GetStats(today, null));
+            statsProfileText.Text = FormatStats(TranslationDatabase.GetStats(today, profile));
+            statsAllText.Text = FormatStats(TranslationDatabase.GetStats(null, null));
+        }
+
+        private static string FormatStats(TranslationDatabase.Stats s)
+            => $"Requests: {s.Requests}  (cache hit: {s.CacheHits})\n" +
+               $"Tokens: {s.PromptTokens} in + {s.OutputTokens} out\n" +
+               $"Chi phí ước tính: ${s.CostUsd:F6}";
+
+        private void RefreshStats_Click(object sender, RoutedEventArgs e) => RefreshStats();
 
         private void SaveAllCaptures_Changed(object sender, RoutedEventArgs e)
         {

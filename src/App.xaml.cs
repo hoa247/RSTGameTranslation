@@ -95,6 +95,10 @@ public partial class App : Application
         // available even when the app runs elevated (stdout detached).
         DebugFileLogger.Init();
 
+        // Open the local SQLite store and warm the translation cache (best-effort).
+        TranslationDatabase.Init();
+        TranslationCache.Load();
+
         // Force invariant culture for all threads to prevent locale-dependent
         // number formatting (e.g. comma vs period decimal separator) from
         // corrupting config values and other serialized data.

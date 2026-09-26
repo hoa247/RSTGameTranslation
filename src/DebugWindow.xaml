@@ -86,6 +86,24 @@
                     </ListView>
                 </Grid>
             </TabItem>
+
+            <!-- ============ Statistics ============ -->
+            <TabItem Header="Thống kê">
+                <StackPanel Margin="14">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="Làm mới" Padding="10,3" Click="RefreshStats_Click"/>
+                        <TextBlock x:Name="cacheCountText" VerticalAlignment="Center" Margin="14,0,0,0" Opacity="0.8"/>
+                    </StackPanel>
+                    <TextBlock Text="HÔM NAY" FontWeight="Bold" Margin="0,4"/>
+                    <TextBlock x:Name="statsTodayText" FontFamily="Consolas" TextWrapping="Wrap"/>
+                    <TextBlock Text="GAME HIỆN TẠI (hôm nay)" FontWeight="Bold" Margin="0,14,0,4"/>
+                    <TextBlock x:Name="statsProfileText" FontFamily="Consolas" TextWrapping="Wrap"/>
+                    <TextBlock Text="TỔNG CỘNG (tất cả ngày)" FontWeight="Bold" Margin="0,14,0,4"/>
+                    <TextBlock x:Name="statsAllText" FontFamily="Consolas" TextWrapping="Wrap"/>
+                    <TextBlock Margin="0,16,0,0" Opacity="0.6" TextWrapping="Wrap"
+                               Text="Chi phí là ước tính theo giá Flash-Lite (~$0.10/1M in, $0.40/1M out); nếu dùng free tier thì thực tế = $0. Cache hit = 0đ (không gọi API). Lưu vào rst_data.db."/>
+                </StackPanel>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

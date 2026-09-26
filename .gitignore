@@ -424,3 +424,10 @@ app/webserver/*.exe
 mockups/*
 docs/*
 .vscode/*
+# RST runtime data
+app/rst_data.db
+app/rst_data.db-*
+app/logs/
+app/webserver/debug_captures/
+app/gemini_last_error.txt
+*.lnk
