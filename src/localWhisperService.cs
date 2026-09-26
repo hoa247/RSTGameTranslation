@@ -67,6 +67,11 @@ namespace RSTGameTranslation
                 + @"|^[\s\.\-–—_·、。，,!?！？~♪]*$"                  // punctuation / music-only
                 + @"|inaudible|blank_audio"
                 + @"|thank(s| you) for watching|please subscribe|subscribe to (my|our) channel"
+                // More common English Whisper hallucinations on music/silence (YouTube-outro phrases).
+                + @"|this is the end of (the|this) video|end of (the|this) video"
+                + @"|we('| wi)ll be back( soon| with (a )?new video)?"
+                + @"|see you (guys |all )?(next time|in the next( video)?|later|soon|again)"
+                + @"|(like (and|&|,) ?subscribe|hit the like button|don'?t forget to (like|subscribe))"
                 + @"|ご視聴ありがとうございました|字幕(by|を提供)"
                 + @"|请不吝点赞|订阅 ?转发|打赏支持|明镜与点点",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase
