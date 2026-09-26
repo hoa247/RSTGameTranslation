@@ -162,6 +162,12 @@ namespace RSTGameTranslation
             {
                 _keyCodeMap[$"F{i}"] = 0x70 + i - 1;
             }
+
+            // Numpad digit keys (VK_NUMPAD0..9 = 0x60..0x69)
+            for (int i = 0; i <= 9; i++)
+            {
+                _keyCodeMap[$"NUM{i}"] = 0x60 + i;
+            }
             
             // Other common keys
             _keyCodeMap["SPACE"] = 0x20;
