@@ -133,6 +133,11 @@ namespace RSTGameTranslation
 
         // Text-to-Speech configuration keys
         public const string TTS_ENABLED = "tts_enabled";
+        // When the Start button is pressed, auto-enable these toggles (one click enables everything).
+        public const string START_AUTO_AUDIO = "start_auto_audio";
+        public const string START_AUTO_TTS = "start_auto_tts";
+        public const string START_AUTO_CHATBOX = "start_auto_chatbox";
+        public const string START_AUTO_OVERLAY = "start_auto_overlay";
         public const string TTS_SERVICE = "tts_service";
         public const string ELEVENLABS_API_KEY = "elevenlabs_api_key";
         public const string ELEVENLABS_VOICE = "elevenlabs_voice";
@@ -2349,6 +2354,19 @@ namespace RSTGameTranslation
             SaveConfig();
             Console.WriteLine($"TTS enabled: {enabled}");
         }
+
+        // Start auto-enable options: consulted by MainWindow when the Start button is pressed.
+        public bool IsStartAutoAudioEnabled() => GetValue(START_AUTO_AUDIO, "false").ToLower() == "true";
+        public void SetStartAutoAudioEnabled(bool v) { _configValues[START_AUTO_AUDIO] = v.ToString().ToLower(); SaveConfig(); }
+
+        public bool IsStartAutoTtsEnabled() => GetValue(START_AUTO_TTS, "false").ToLower() == "true";
+        public void SetStartAutoTtsEnabled(bool v) { _configValues[START_AUTO_TTS] = v.ToString().ToLower(); SaveConfig(); }
+
+        public bool IsStartAutoChatBoxEnabled() => GetValue(START_AUTO_CHATBOX, "false").ToLower() == "true";
+        public void SetStartAutoChatBoxEnabled(bool v) { _configValues[START_AUTO_CHATBOX] = v.ToString().ToLower(); SaveConfig(); }
+
+        public bool IsStartAutoOverlayEnabled() => GetValue(START_AUTO_OVERLAY, "false").ToLower() == "true";
+        public void SetStartAutoOverlayEnabled(bool v) { _configValues[START_AUTO_OVERLAY] = v.ToString().ToLower(); SaveConfig(); }
 
         // Get/Set exclude character name
         public bool IsExcludeCharacterNameEnabled()

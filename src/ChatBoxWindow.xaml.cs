@@ -739,11 +739,6 @@ namespace RSTGameTranslation
             KeyboardShortcuts.InvokeFunctionFromClick("Show Area");
         }
 
-        private void OneOffAreaButton_Click(object sender, RoutedEventArgs e)
-        {
-            MainWindow.Instance?.StartOneOffAreaSelection();
-        }
-
         private HistoryWindow? _historyWindow;
 
         private void HistoryButton_Click(object sender, RoutedEventArgs e)

@@ -2279,6 +2279,21 @@
             <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_GameProfile]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
+                        <!-- On-Start auto-enable options: one click on the Start button turns these on -->
+                        <GroupBox Header="Khi nhấn ▶ Bắt đầu" Margin="0,0,0,15" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Tự động bật các mục đã tick mỗi khi nhấn nút Bắt đầu (chỉ 1 click là xong):"
+                                           TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8"/>
+                                <CheckBox x:Name="startAutoAudioCheckBox" Content="🎤 Dịch âm thanh (STT) — thử nghiệm"
+                                          Margin="0,4" Click="StartAutoOption_Changed"/>
+                                <CheckBox x:Name="startAutoTtsCheckBox" Content="🔊 Đọc bản dịch (TTS)"
+                                          Margin="0,4" Click="StartAutoOption_Changed"/>
+                                <CheckBox x:Name="startAutoChatBoxCheckBox" Content="💬 Hộp thoại (ChatBox)"
+                                          Margin="0,4" Click="StartAutoOption_Changed"/>
+                                <CheckBox x:Name="startAutoOverlayCheckBox" Content="📺 Lớp phủ (Overlay)"
+                                          Margin="0,4" Click="StartAutoOption_Changed"/>
+                            </StackPanel>
+                        </GroupBox>
                         <!-- Audio Processing Settings -->
                         <GroupBox Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_ProfileSettings]}" Margin="0,0,0,15" Padding="10">
                             <Grid>

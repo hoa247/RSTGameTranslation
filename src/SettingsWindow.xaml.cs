@@ -1213,6 +1213,12 @@ namespace RSTGameTranslation
             // Set TTS enabled state
             ttsEnabledCheckBox.IsChecked = ConfigManager.Instance.IsTtsEnabled();
 
+            // On-Start auto-enable options
+            startAutoAudioCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoAudioEnabled();
+            startAutoTtsCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoTtsEnabled();
+            startAutoChatBoxCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoChatBoxEnabled();
+            startAutoOverlayCheckBox.IsChecked = ConfigManager.Instance.IsStartAutoOverlayEnabled();
+
             // Set Exclude character name
             excludeCharacterNameCheckBox.IsChecked = ConfigManager.Instance.IsExcludeCharacterNameEnabled();
 
@@ -1585,6 +1591,16 @@ namespace RSTGameTranslation
         {
             SelectLanguageByCode(sourceLanguageComboBox, "en");
             SelectLanguageByCode(targetLanguageComboBox, "vi");
+        }
+
+        // Persist the "on Start, auto-enable these" checkboxes.
+        private void StartAutoOption_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            ConfigManager.Instance.SetStartAutoAudioEnabled(startAutoAudioCheckBox.IsChecked == true);
+            ConfigManager.Instance.SetStartAutoTtsEnabled(startAutoTtsCheckBox.IsChecked == true);
+            ConfigManager.Instance.SetStartAutoChatBoxEnabled(startAutoChatBoxCheckBox.IsChecked == true);
+            ConfigManager.Instance.SetStartAutoOverlayEnabled(startAutoOverlayCheckBox.IsChecked == true);
         }
 
         private static void SelectLanguageByCode(ComboBox comboBox, string code)

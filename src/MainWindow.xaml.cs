@@ -1683,6 +1683,9 @@ namespace RSTGameTranslation
                     ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStarted"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStarted_Details"]);
                     StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(20, 180, 20)); // Green
                     StartStatusText.Text = LocalizationManager.Instance.Strings["Btn_On"];
+
+                    // One-click startup: auto-enable whatever the user ticked in Settings.
+                    await ApplyStartAutoEnablesAsync();
                 }
                 else
                 {
@@ -1696,6 +1699,48 @@ namespace RSTGameTranslation
             }
         }
 
+
+        // Called when the Start button turns ON. Auto-enables the toggles the user ticked in
+        // Settings ("Khi nhấn Bắt đầu"). Each check is idempotent so we never toggle something off.
+        private async System.Threading.Tasks.Task ApplyStartAutoEnablesAsync()
+        {
+            try
+            {
+                var cfg = ConfigManager.Instance;
+
+                if (cfg.IsStartAutoAudioEnabled() && !cfg.IsAudioServiceAutoTranslateEnabled())
+                {
+                    await ToggleAudioServiceAsync();
+                }
+
+                if (cfg.IsStartAutoTtsEnabled() && !cfg.IsTtsEnabled())
+                {
+                    cfg.SetTtsEnabled(true);
+                    cfg.SaveConfig();
+                    UpdateTtsButtonUI(true);
+                }
+
+                if (cfg.IsStartAutoChatBoxEnabled() && !isChatBoxVisible)
+                {
+                    ToggleChatBox();
+                }
+
+                if (cfg.IsStartAutoOverlayEnabled()
+                    && (MonitorWindow.Instance == null || !MonitorWindow.Instance.IsVisible))
+                {
+                    // Respect the same Windows 10 guard used by the Overlay button.
+                    bool win10NeedsWindow = Windows_Version == "Windows 10" && !isCapturingWindow;
+                    if (!win10NeedsWindow)
+                    {
+                        ToggleMonitorWindow();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ApplyStartAutoEnablesAsync failed: {ex.Message}");
+            }
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
