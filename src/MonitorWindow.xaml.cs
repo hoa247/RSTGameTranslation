@@ -745,8 +745,13 @@ namespace RSTGameTranslation
         }
 
         // Show the translation status
+        // True while a translation request is settling/waiting, so the low-priority
+        // capture/OCR pipeline stages don't overwrite the "Waiting for {service}" text.
+        private bool _translationInFlight;
+
         public void ShowTranslationStatus(bool bSettling)
         {
+            _translationInFlight = true;
 
             if (bSettling)
             {
@@ -810,15 +815,33 @@ namespace RSTGameTranslation
         // Hide the translation status
         public void HideTranslationStatus()
         {
+            _translationInFlight = false;
             Dispatcher.Invoke(() =>
             {
                 translationStatusBorder.Visibility = Visibility.Collapsed;
-                
+
                 // Stop the timer
                 if (_translationStatusTimer != null && _translationStatusTimer.IsEnabled)
                 {
                     _translationStatusTimer.Stop();
                 }
+            });
+        }
+
+        /// <summary>
+        /// Shows a low-priority pipeline stage (e.g. capturing, OCR) on the overlay status line.
+        /// Yields to an in-flight translation so the "Waiting for {service}" countdown is not clobbered.
+        /// </summary>
+        public void SetPipelineStage(string stageText)
+        {
+            if (_translationInFlight) return;
+            if (!ConfigManager.Instance.IsShowIconSignalEnabled()) return;
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_translationInFlight) return;
+                translationStatusLabel.Text = stageText;
+                translationStatusBorder.Visibility = Visibility.Visible;
             });
         }
         

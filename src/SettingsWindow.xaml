@@ -1033,6 +1033,8 @@
                                              Click="ViewApiKeysButton_Click" Tag="Gemini" Width="70"/>
                                     <Button x:Name="SaveGeminiKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Gemini"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
+                                    <Button x:Name="TestGeminiKeyButton" Content="Test" Grid.Row="1" Tag="Gemini"
+                                            HorizontalAlignment="Center" Width="70" Click="TestApiKeyButton_Click" />
                                     <TextBlock x:Name="geminiApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
@@ -1130,6 +1132,7 @@
                                             LostFocus="GeminiModelComboBox_LostFocus"
                                             IsEditable="True"
                                             Foreground="{DynamicResource TextBrush}">
+                                        <ComboBoxItem Content="gemini-3.5-flash-lite"/>
                                         <ComboBoxItem Content="gemini-2.0-flash"/>
                                         <ComboBoxItem Content="gemini-2.0-flash-lite"/>
                                         <ComboBoxItem Content="gemma-3-12b-it"/>

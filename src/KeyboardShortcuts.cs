@@ -371,7 +371,20 @@ namespace RSTGameTranslation
             }
 
             bool shouldInvoke = TryReserveHotkeyDispatch(function);
+            return DispatchFunction(function, shouldInvoke);
+        }
 
+        /// <summary>
+        /// Invokes a shortcut's mapped action directly (used by the clickable shortcut rows in the UI).
+        /// Unlike a hotkey press, this ignores the hotkey-enabled setting and debounce so a click always works.
+        /// </summary>
+        public static void InvokeFunctionFromClick(string function)
+        {
+            DispatchFunction(function, true);
+        }
+
+        private static bool DispatchFunction(string function, bool shouldInvoke)
+        {
             switch (function)
             {
                 case "Start/Stop":

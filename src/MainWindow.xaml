@@ -379,7 +379,7 @@
             <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
 
-        <!-- Hotkey Item Style -->
+        <!-- Hotkey Item Style: each row is also a clickable button that fires its shortcut -->
         <Style x:Key="HotkeyItem" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
@@ -387,6 +387,13 @@
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <EventSetter Event="MouseLeftButtonUp" Handler="HotkeyRow_Click"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <!-- Hotkey Key Style -->
@@ -705,8 +712,20 @@
                                             </DataTemplate>
                                         </Button.ContentTemplate>
                                     </Button>
+                                    <Button x:Name="debugButton" Style="{StaticResource ModernButton}"
+                                            Content="Debug" Background="#0ea5e9" Click="DebugButton_Click"
+                                            WindowChrome.IsHitTestVisibleInChrome="True">
+                                        <Button.ContentTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🐛 " FontSize="10" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </Button.ContentTemplate>
+                                    </Button>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}" 
+                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Grp_System]}"
                                            Style="{StaticResource ToolGroupLabel}"/>
                             </StackPanel>
                         </Border>
@@ -828,118 +847,118 @@
                                     </Grid>
                                     
                                     <WrapPanel>
-                                        <!-- Hotkey Items - Left Column -->
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <!-- Hotkey Items - each row is clickable (Tag = shortcut function name) -->
+                                        <Border x:Name="rowStartStop" Tag="Start/Stop" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_StartStopTranslation]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyStartStop" Text="ALT + G" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowSelectArea" Tag="Select Area" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeySelectArea" Text="ALT + Q" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowOverlay" Tag="Overlay" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleOverlay]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyOverlay" Text="ALT + F" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowChatBox" Tag="ChatBox" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleChatBox]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyChatBox" Text="ALT + C" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowShowArea" Tag="Show Area" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ShowAreaBorder]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyShowArea" Text="ALT + B" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowAudio" Tag="Audio Service" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_AudioService]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyAudio" Text="ALT + K" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowSetting" Tag="Setting" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_OpenSettings]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeySetting" Text="ALT + P" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowLog" Tag="Log" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ToggleLog]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyLog" Text="ALT + L" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowSwapLanguages" Tag="Swap Languages" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SwapLanguages]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeySwapLanguages" Text="ALT + V" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowClearAreas" Tag="Clear Areas" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearAllAreas]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyClearAreas" Text="ALT + R" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowClearSelectedArea" Tag="Clear Selected Area" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_ClearSelectedArea]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyClearPreviousArea" Text="ALT + H" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowRetry" Tag="Retry Translation" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_TranslationRetry]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyRetryTranslate" Text="ALT + T" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="220">
+                                        <Border x:Name="rowExclude" Tag="Select Exclude Region" Style="{StaticResource HotkeyItem}" MinWidth="220">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectExcludeRegion]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyToggleExcludeRegions" Text="ALT + X" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
@@ -947,45 +966,45 @@
                                             </Grid>
                                         </Border>
                                         <!-- Area hotkeys -->
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                        <Border x:Name="rowArea1" Tag="Area 1" Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea1]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyArea1" Text="ALT + 1" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                        <Border x:Name="rowArea2" Tag="Area 2" Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea2]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyArea2" Text="ALT + 2" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                        <Border x:Name="rowArea3" Tag="Area 3" Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea3]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyArea3" Text="ALT + 3" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                        <Border x:Name="rowArea4" Tag="Area 4" Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea4]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyArea4" Text="ALT + 4" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Border Style="{StaticResource HotkeyItem}" MinWidth="180">
+                                        <Border x:Name="rowArea5" Tag="Area 5" Style="{StaticResource HotkeyItem}" MinWidth="180">
                                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}" 
+                                                <TextBlock Text="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Lbl_SelectArea5]}"
                                                            Foreground="{DynamicResource MutedBrush}" FontSize="12" VerticalAlignment="Center"/>
                                                 <Border Grid.Column="1" Style="{StaticResource HotkeyKey}">
                                                     <TextBlock x:Name="hotKeyArea5" Text="ALT + 5" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource TextBrush}"/>

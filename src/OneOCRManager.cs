@@ -39,6 +39,31 @@ namespace RSTGameTranslation
     }
     static partial class NativeMethods
     {
+        static NativeMethods()
+        {
+            // oneocr.dll (and its onnxruntime.dll dependency) may ship either next to the
+            // executable or inside an "OneOcr" subfolder. Register a resolver so the P/Invoke
+            // loads it from whichever location exists, instead of failing with 0x8007007E.
+            NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, (name, assembly, searchPath) =>
+            {
+                if (string.Equals(name, "oneocr.dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string[] candidates =
+                    {
+                        Path.Combine(baseDir, "oneocr.dll"),
+                        Path.Combine(baseDir, "OneOcr", "oneocr.dll")
+                    };
+                    foreach (string candidate in candidates)
+                    {
+                        if (File.Exists(candidate) && NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                            return handle;
+                    }
+                }
+                return IntPtr.Zero; // fall back to the default search order
+            });
+        }
+
         [LibraryImport("oneocr.dll")]
         [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
         public static partial long CreateOcrInitOptions(out long ctx);
@@ -159,7 +184,15 @@ namespace RSTGameTranslation
             try
             {
                 string key = "kj)TGtrK>f]b[Piow.gU+nC@s\"\"\"\"\"\"4";
-                string modelPath = "oneocr.onemodel";
+                // The model may sit next to the exe or in the OneOcr subfolder; use whichever exists.
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string modelPath = Path.Combine(baseDir, "oneocr.onemodel");
+                if (!File.Exists(modelPath))
+                {
+                    string subPath = Path.Combine(baseDir, "OneOcr", "oneocr.onemodel");
+                    if (File.Exists(subPath))
+                        modelPath = subPath;
+                }
 
                 long res = NativeMethods.CreateOcrPipeline(modelPath, key, Context, out _pipeline);
                 if (res != 0)

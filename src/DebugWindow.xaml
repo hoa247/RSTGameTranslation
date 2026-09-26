@@ -1,0 +1,91 @@
+<Window x:Class="RSTGameTranslation.DebugWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Debug — RST" Height="660" Width="960"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="8">
+        <TabControl>
+            <!-- ============ Options ============ -->
+            <TabItem Header="Tùy chọn">
+                <StackPanel Margin="14">
+                    <CheckBox x:Name="saveAllCapturesCheck" Margin="0,8"
+                              Content="Giữ TẤT CẢ ảnh chụp (mỗi frame 1 file) — tắt = chỉ ghi đè 1 ảnh"
+                              Checked="SaveAllCaptures_Changed" Unchecked="SaveAllCaptures_Changed"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.7" Margin="0,0,0,14"
+                               Text="Bật: mỗi lần chụp lưu 1 file riêng vào webserver\debug_captures\capture_&lt;time&gt;.png (tốn ổ đĩa, dùng để debug). Tắt: chỉ ghi đè webserver\image_to_process.png (chế độ chạy thật)."/>
+                    <TextBlock x:Name="logPathText" TextWrapping="Wrap" Opacity="0.7" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Mở thư mục ảnh debug" Padding="10,4" Margin="0,0,8,0" Click="OpenCapturesFolder_Click"/>
+                        <Button Content="Mở thư mục log" Padding="10,4" Click="OpenLogsFolder_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <!-- ============ Request / Response / Cost ============ -->
+            <TabItem Header="Request / Response / Chi phí">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="210"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock x:Name="summaryText" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Content="Làm mới" Padding="10,3" Margin="14,0,0,0" Click="RefreshLog_Click"/>
+                        <Button Content="Xóa log" Padding="10,3" Margin="6,0,0,0" Click="ClearLog_Click"/>
+                    </StackPanel>
+
+                    <ListView x:Name="logList" Grid.Row="1" SelectionChanged="LogList_SelectionChanged">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Giờ" DisplayMemberBinding="{Binding TimeText}" Width="70"/>
+                                <GridViewColumn Header="Model" DisplayMemberBinding="{Binding Model}" Width="170"/>
+                                <GridViewColumn Header="Tokens (in/out)" DisplayMemberBinding="{Binding TokensText}" Width="130"/>
+                                <GridViewColumn Header="Chi phí" DisplayMemberBinding="{Binding CostText}" Width="100"/>
+                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="140"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <TextBlock Grid.Row="2" Margin="0,6,0,4" Opacity="0.8"
+                               Text="Chọn 1 dòng ở trên — Trái = REQUEST gửi đi, Phải = RESPONSE trả về:"/>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="requestBox" Grid.Column="0" IsReadOnly="True" TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" Margin="0,0,4,0"/>
+                        <TextBox x:Name="responseBox" Grid.Column="1" IsReadOnly="True" TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="11" Margin="4,0,0,0"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ============ Translation history ============ -->
+            <TabItem Header="Lịch sử dịch">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock x:Name="historyCountText" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Content="Làm mới" Padding="10,3" Margin="14,0,0,0" Click="RefreshHistory_Click"/>
+                    </StackPanel>
+                    <ListView x:Name="historyList" Grid.Row="1">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Giờ" DisplayMemberBinding="{Binding Timestamp, StringFormat=HH:mm:ss}" Width="70"/>
+                                <GridViewColumn Header="Gốc" DisplayMemberBinding="{Binding OriginalText}" Width="390"/>
+                                <GridViewColumn Header="Bản dịch" DisplayMemberBinding="{Binding TranslatedText}" Width="390"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

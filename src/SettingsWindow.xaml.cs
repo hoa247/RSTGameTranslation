@@ -747,6 +747,54 @@ namespace RSTGameTranslation
                 );
             }
         }
+
+        /// <summary>
+        /// Tests whether the entered/saved Gemini API key is alive by sending a tiny request.
+        /// Prefers the key currently typed in the box; falls back to the saved key.
+        /// </summary>
+        private async void TestApiKeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as System.Windows.Controls.Button;
+            string serviceType = (button?.Tag as string) ?? "Gemini";
+
+            if (serviceType != "Gemini")
+            {
+                MessageBox.Show($"Test not supported for {serviceType} yet.", "Test API Key",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string apiKey = geminiApiKeyPasswordBox.Password.Trim();
+            if (string.IsNullOrEmpty(apiKey))
+                apiKey = ConfigManager.Instance.GetGeminiApiKey();
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                MessageBox.Show(LocalizationManager.Instance.Strings["Msg_PleaseEnterApiKey"],
+                    "Test API Key", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string model = ConfigManager.Instance.GetGeminiModel();
+            string? originalContent = button?.Content as string;
+            if (button != null) { button.IsEnabled = false; button.Content = "..."; }
+
+            try
+            {
+                var (alive, status) = await GeminiTranslationService.ValidateKeyAsync(apiKey, model);
+                if (alive)
+                    MessageBox.Show($"API key is alive and working.\nModel: {model}", "Test API Key",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                else
+                    MessageBox.Show($"API key is NOT working.\n\n{status}", "Test API Key",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                if (button != null) { button.IsEnabled = true; button.Content = originalContent ?? "Test"; }
+            }
+        }
+
         // Handler for application-level keyboard shortcuts
         private void Application_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -2731,12 +2779,12 @@ namespace RSTGameTranslation
                 // Handle both dropdown selection and manually typed values
                 if (geminiModelComboBox.SelectedItem is ComboBoxItem selectedItem)
                 {
-                    model = selectedItem.Content?.ToString() ?? "gemini-2.0-flash-lite";
+                    model = selectedItem.Content?.ToString() ?? "gemini-3.5-flash-lite";
                 }
                 else
                 {
                     // For manually entered text
-                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-2.0-flash-lite";
+                    model = geminiModelComboBox.Text?.Trim() ?? "gemini-3.5-flash-lite";
                 }
 
                 if (!string.IsNullOrWhiteSpace(model))

@@ -1940,6 +1940,7 @@ namespace RSTGameTranslation
 
                 try
                 {
+                    try { MonitorWindow.Instance.SetPipelineStage("🔤 Đang đọc chữ (OCR)..."); } catch { }
                     var textLines = await OneOCRManager.Instance.GetOcrLinesFromBitmapAsync(bitmap);
 
                     // Process the OCR results with language code

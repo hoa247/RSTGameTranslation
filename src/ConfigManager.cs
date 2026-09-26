@@ -560,7 +560,7 @@ namespace RSTGameTranslation
             _configValues[MISTRAL_API_KEY] = "<your API key here>";
             _configValues[GROQ_MODEL] = "moonshotai/kimi-k2-instruct-0905";
             _configValues[GROQ_API_KEY] = "<your API key here>";
-            _configValues[GEMINI_MODEL] = "gemini-2.5-flash-lite";
+            _configValues[GEMINI_MODEL] = "gemini-3.5-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = (3.00).ToString(CultureInfo.InvariantCulture);
             _configValues[BLOCK_DETECTION_SETTLE_TIME] = (0.2).ToString(CultureInfo.InvariantCulture);
             _configValues[LINE_SPACING_FACTOR] = (0.63).ToString(CultureInfo.InvariantCulture);
@@ -2796,7 +2796,7 @@ namespace RSTGameTranslation
         // Get Gemini model
         public string GetGeminiModel()
         {
-            return GetValue(GEMINI_MODEL, "gemini-2.0-flash-lite"); // Default to 2.0 Flash-lite
+            return GetValue(GEMINI_MODEL, "gemini-3.5-flash-lite"); // Default to 3.5 Flash-lite
         }
 
         // Set Gemini model

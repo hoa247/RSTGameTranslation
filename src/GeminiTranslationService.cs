@@ -55,6 +55,43 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
+        /// Lightweight liveness check for a Gemini API key: sends a tiny request and reports
+        /// whether the key works. Returns (alive, status) — alive on HTTP 200, dead on 401/403/429.
+        /// Unlike TranslateAsync it never retries, switches keys, or shows dialogs.
+        /// </summary>
+        public static async Task<(bool alive, string status)> ValidateKeyAsync(string apiKey, string model)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+                return (false, "Empty API key");
+            if (string.IsNullOrWhiteSpace(model))
+                model = "gemini-3.5-flash-lite";
+
+            try
+            {
+                var requestContent = new
+                {
+                    contents = new[] { new { parts = new[] { new { text = "ping" } } } }
+                };
+                string requestJson = JsonSerializer.Serialize(requestContent);
+                var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+
+                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                if (response.IsSuccessStatusCode)
+                    return (true, "OK");
+
+                string body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Gemini key validation failed: {(int)response.StatusCode} {response.StatusCode} - {body}");
+                return (false, $"HTTP {(int)response.StatusCode} {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Gemini key validation error: {ex.Message}");
+                return (false, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Translate text using the Gemini API
         /// </summary>
         /// <param name="jsonData">The JSON data to translate</param>
@@ -124,6 +161,36 @@ namespace RSTGameTranslation
                     // Log the raw Gemini response before returning it
                     LogManager.Instance.LogLlmReply(jsonResponse);
 
+                    // Capture request/response + token usage for the Debug window's cost view.
+                    try
+                    {
+                        int promptTokens = 0, outputTokens = 0, totalTokens = 0;
+                        using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
+                        {
+                            if (doc.RootElement.TryGetProperty("usageMetadata", out var usage))
+                            {
+                                if (usage.TryGetProperty("promptTokenCount", out var p)) promptTokens = p.GetInt32();
+                                if (usage.TryGetProperty("candidatesTokenCount", out var c)) outputTokens = c.GetInt32();
+                                if (usage.TryGetProperty("totalTokenCount", out var t)) totalTokens = t.GetInt32();
+                            }
+                        }
+                        RequestLogManager.Add(new RequestLogEntry
+                        {
+                            Time = DateTime.Now,
+                            Service = "Gemini",
+                            Model = model,
+                            RequestText = $"{prompt}\n{jsonData}",
+                            ResponseText = jsonResponse,
+                            PromptTokens = promptTokens,
+                            OutputTokens = outputTokens,
+                            TotalTokens = totalTokens,
+                            EstimatedCostUsd = RequestLogManager.EstimateCostUsd(model, promptTokens, outputTokens),
+                            Success = true,
+                            Status = "OK"
+                        });
+                    }
+                    catch { }
+
                     return jsonResponse;
                 }
                 else
@@ -131,6 +198,22 @@ namespace RSTGameTranslation
                     string errorMessage = await response.Content.ReadAsStringAsync();
                     _consecutiveFailures++;
                     Console.WriteLine($"Gemini API error: {response.StatusCode}, {errorMessage}, error count: {_consecutiveFailures}");
+
+                    // Record the failed call so it shows up in the Debug request/response log.
+                    try
+                    {
+                        RequestLogManager.Add(new RequestLogEntry
+                        {
+                            Time = DateTime.Now,
+                            Service = "Gemini",
+                            Model = model,
+                            RequestText = $"{prompt}\n{jsonData}",
+                            ResponseText = errorMessage,
+                            Success = false,
+                            Status = $"HTTP {(int)response.StatusCode} {response.StatusCode}"
+                        });
+                    }
+                    catch { }
 
                     // Check if we should switch API key
                     if (ShouldSwitchApiKey(response.StatusCode, errorMessage))
@@ -177,13 +260,11 @@ namespace RSTGameTranslation
                                 // Write error to file
                                 System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
 
-                                // Show error message to user
+                                // Non-blocking notification (a modal dialog here interrupts gameplay).
                                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                                    System.Windows.MessageBox.Show(
-                                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiError"], detailedError),
+                                    MainWindow.Instance?.ShowFastNotification(
                                         LocalizationManager.Instance.Strings["Title_GeminiError"],
-                                        System.Windows.MessageBoxButton.OK,
-                                        System.Windows.MessageBoxImage.Error);
+                                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiError"], detailedError));
                                 });
                             }
                             await Task.Delay(delayMS);
@@ -199,13 +280,11 @@ namespace RSTGameTranslation
                         // Write error to file
                         System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
 
-                        // Show general error if JSON parsing failed
+                        // Non-blocking notification instead of a modal dialog.
                         System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                            System.Windows.MessageBox.Show(
-                                string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiErrorStatus"], response.StatusCode, errorMessage),
+                            MainWindow.Instance?.ShowFastNotification(
                                 LocalizationManager.Instance.Strings["Title_GeminiError"],
-                                System.Windows.MessageBoxButton.OK,
-                                System.Windows.MessageBoxImage.Error);
+                                string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiErrorStatus"], response.StatusCode, errorMessage));
                         });
                     }
                     await Task.Delay(delayMS);
@@ -219,13 +298,12 @@ namespace RSTGameTranslation
                 // Write error to file
                 System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {ex.Message}\n\nStack trace: {ex.StackTrace}");
 
-                // Show error message to user
+                // Non-blocking notification instead of a modal dialog (network errors are common
+                // mid-game and a blocking popup freezes the whole app until dismissed).
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
-                    System.Windows.MessageBox.Show(
-                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiException"], ex.Message),
+                    MainWindow.Instance?.ShowFastNotification(
                         LocalizationManager.Instance.Strings["Title_GeminiError"],
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
+                        string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiException"], ex.Message));
                 });
 
                 return null;

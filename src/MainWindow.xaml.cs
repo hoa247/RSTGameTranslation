@@ -98,6 +98,11 @@ namespace RSTGameTranslation
         }
         private DispatcherTimer _captureTimer;
         private string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DEFAULT_OUTPUT_PATH);
+        // When true, every capture is also saved as a timestamped file under
+        // webserver\debug_captures for offline debugging. Off by default so real
+        // runs keep writing only the single image_to_process.png. Toggleable at
+        // runtime from the Debug window.
+        public bool DebugSaveAllCaptures { get; set; } = ConfigManager.Instance.GetBoolValue("debug_save_all_captures", false);
         private WindowInteropHelper helper;
         private System.Drawing.Rectangle captureRect;
 
@@ -143,6 +148,18 @@ namespace RSTGameTranslation
 
         // Keep translation history even when ChatBox is closed
         private Queue<TranslationEntry> _translationHistory = new Queue<TranslationEntry>();
+
+        // Full translation history for the Debug window's History tab (not capped to the small
+        // chatbox display size). Bounded to avoid unbounded growth over a long session.
+        private const int MAX_FULL_HISTORY = 2000;
+        private readonly List<TranslationEntry> _fullTranslationHistory = new List<TranslationEntry>();
+        public List<TranslationEntry> GetFullTranslationHistory()
+        {
+            lock (_fullTranslationHistory)
+            {
+                return _fullTranslationHistory.AsEnumerable().Reverse().ToList();
+            }
+        }
 
         // Accessor for ChatBoxWindow to get the translation history
         public Queue<TranslationEntry> GetTranslationHistory()
@@ -710,10 +727,32 @@ namespace RSTGameTranslation
             try
             {
                 bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+                SaveCaptureForDebug(bitmap);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving masked bitmap: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// When debug_save_all_captures is enabled, saves a timestamped copy of every
+        /// captured/cropped frame so captures can be reviewed offline. No-op in normal runs.
+        /// </summary>
+        private void SaveCaptureForDebug(Bitmap bitmap)
+        {
+            if (!DebugSaveAllCaptures) return;
+            try
+            {
+                string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "webserver", "debug_captures");
+                Directory.CreateDirectory(dir);
+                string file = Path.Combine(dir, $"capture_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png");
+                bitmap.Save(file, ImageFormat.Png);
+                Console.WriteLine($"[DebugCapture] saved {file}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DebugCapture] save failed: {ex.Message}");
             }
         }
 
@@ -1397,8 +1436,100 @@ namespace RSTGameTranslation
 
         private void OnUpdateTick(object? sender, EventArgs e)
         {
+            // Keep the clickable shortcut rows' lit/dim state in sync with live toggle state.
+            UpdateShortcutRowStates();
 
+            // Only capture while translation is running AND a valid region is selected.
+            // Stopped (Alt+G off) => no capture. Also require a valid current-area index so we never
+            // fall back to grabbing the whole game window (e.g. after clearing the last area, or a
+            // stale state left over from an app/game restart).
+            if (!isStarted || !hasSelectedTranslationArea
+                || currentAreaIndex < 0 || currentAreaIndex >= savedTranslationAreas.Count)
+                return;
+
+            try { MonitorWindow.Instance.SetPipelineStage("📸 Đang chụp màn hình..."); } catch { }
             PerformCapture();
+        }
+
+        // Cached brushes for shortcut-row highlighting (built once from theme resources).
+        private System.Windows.Media.Brush? _rowActiveBrush;
+        private System.Windows.Media.Brush? _rowIdleBrush;
+
+        /// <summary>
+        /// Click handler shared by every row in the global-shortcuts panel. The row's Tag holds
+        /// the shortcut function name; invoking it reuses the exact same action as the hotkey.
+        /// </summary>
+        private void HotkeyRow_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement fe && fe.Tag is string function && !string.IsNullOrEmpty(function))
+            {
+                KeyboardShortcuts.InvokeFunctionFromClick(function);
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Lights up shortcut rows whose feature is currently ON and dims the rest. Toggle rows
+        /// reflect their on/off state; area rows reflect which saved area is active. Pure action
+        /// rows (select area, clear, retry, settings, swap) stay neutral.
+        /// </summary>
+        private void UpdateShortcutRowStates()
+        {
+            try
+            {
+                if (rowStartStop == null) return; // UI not built yet
+
+                if (_rowActiveBrush == null)
+                {
+                    Color accent = (TryFindResource("AccentBrush") as SolidColorBrush)?.Color
+                                   ?? Color.FromRgb(61, 215, 208);
+                    _rowActiveBrush = new SolidColorBrush(Color.FromArgb(80, accent.R, accent.G, accent.B));
+                    _rowIdleBrush = TryFindResource("SurfaceBrush") as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.Transparent;
+                }
+
+                SetRowState(rowStartStop, isStarted);
+                SetRowState(rowOverlay, MonitorWindow.Instance != null && MonitorWindow.Instance.IsVisible);
+                SetRowState(rowChatBox, isChatBoxVisible);
+                SetRowState(rowLog, LogWindow.Instance != null && LogWindow.Instance.IsVisible);
+                SetRowState(rowShowArea, MonitorWindow.Instance != null && MonitorWindow.Instance.BorderThickness == new Thickness(1));
+
+                bool audioOn = false;
+                try { audioOn = localWhisperService.Instance.IsRunning; } catch { }
+                SetRowState(rowAudio, audioOn);
+
+                // Area rows: active area lit; existing-but-inactive normal; empty slots dimmed.
+                Border[] areaRows = { rowArea1, rowArea2, rowArea3, rowArea4, rowArea5 };
+                for (int i = 0; i < areaRows.Length; i++)
+                {
+                    bool exists = i < savedTranslationAreas.Count;
+                    bool active = exists && hasSelectedTranslationArea && i == currentAreaIndex;
+                    areaRows[i].Background = active ? _rowActiveBrush : _rowIdleBrush;
+                    areaRows[i].Opacity = exists ? 1.0 : 0.45;
+                }
+            }
+            catch
+            {
+                // Highlighting is cosmetic; never let it disrupt the capture loop.
+            }
+        }
+
+        private void SetRowState(Border row, bool on)
+        {
+            if (row == null) return;
+            row.Background = on ? _rowActiveBrush : _rowIdleBrush;
+            row.Opacity = on ? 1.0 : 0.55;
+        }
+
+        private DebugWindow? _debugWindow;
+
+        private void DebugButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_debugWindow == null || !_debugWindow.IsLoaded)
+            {
+                _debugWindow = new DebugWindow { Owner = this };
+            }
+            _debugWindow.Show();
+            _debugWindow.Activate();
         }
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1620,7 +1751,7 @@ namespace RSTGameTranslation
             return IntPtr.Zero;
         }
 
-        private void ShowFastNotification(string title, string message)
+        public void ShowFastNotification(string title, string message)
         {
             MyNotifyIcon.CloseBalloon();
 
@@ -1830,6 +1961,31 @@ namespace RSTGameTranslation
                 {
                     try
                     {
+                        // The WGC surface pixel size can differ from the DWM window rect
+                        // (windowWidth/Height) that captureX/Y/Width/Height were computed in.
+                        // Map the crop rect from window space into bitmap-pixel space by the
+                        // bitmap/window ratio so the source lands exactly on the selected area;
+                        // when the two sizes already match this ratio is 1.0 (no-op).
+                        double bmpScaleX = windowWidth > 0 ? (double)fullWindowBmp.Width / windowWidth : 1.0;
+                        double bmpScaleY = windowHeight > 0 ? (double)fullWindowBmp.Height / windowHeight : 1.0;
+
+                        int srcX = (int)Math.Round(captureX * bmpScaleX);
+                        int srcY = (int)Math.Round(captureY * bmpScaleY);
+                        int srcW = (int)Math.Round(captureWidth * bmpScaleX);
+                        int srcH = (int)Math.Round(captureHeight * bmpScaleY);
+
+                        // Clamp the source rect to the real bitmap bounds.
+                        if (srcX < 0) srcX = 0;
+                        if (srcY < 0) srcY = 0;
+                        if (srcX + srcW > fullWindowBmp.Width) srcW = fullWindowBmp.Width - srcX;
+                        if (srcY + srcH > fullWindowBmp.Height) srcH = fullWindowBmp.Height - srcY;
+                        if (srcW < 1) srcW = 1;
+                        if (srcH < 1) srcH = 1;
+
+                        Console.WriteLine($"Crop map: window={windowWidth}x{windowHeight}, bmp={fullWindowBmp.Width}x{fullWindowBmp.Height}, scale={bmpScaleX:F3}x/{bmpScaleY:F3}y, src=({srcX},{srcY},{srcW},{srcH})");
+
+                        // Keep the output bitmap in screen-pixel (window) space so OCR-result
+                        // to overlay coordinate mapping stays 1:1.
                         Bitmap regionBmp = new Bitmap(captureWidth, captureHeight);
                         using (Graphics g = Graphics.FromImage(regionBmp))
                         {
@@ -1840,7 +1996,7 @@ namespace RSTGameTranslation
 
                             g.DrawImage(fullWindowBmp,
                                         new Rectangle(0, 0, captureWidth, captureHeight),
-                                        new Rectangle(captureX, captureY, captureWidth, captureHeight),
+                                        new Rectangle(srcX, srcY, srcW, srcH),
                                         GraphicsUnit.Pixel);
                         }
 
@@ -1980,6 +2136,7 @@ namespace RSTGameTranslation
                                 {
                                     // Save the masked bitmap
                                     maskedBitmap.Save(outputPath, ImageFormat.Png);
+                                    SaveCaptureForDebug(maskedBitmap);
 
                                     if (MonitorWindow.Instance.IsVisible)
                                     {
@@ -2020,6 +2177,7 @@ namespace RSTGameTranslation
                             {
                                 // No exclude regions - original behavior
                                 bitmap.Save(outputPath, ImageFormat.Png);
+                                SaveCaptureForDebug(bitmap);
 
                                 if (MonitorWindow.Instance.IsVisible)
                                 {
@@ -2217,6 +2375,7 @@ namespace RSTGameTranslation
                         // Save bitmap to png file
                         Console.WriteLine($"Saving bitmap to {outputPath}");
                         bitmap.Save(outputPath, ImageFormat.Png);
+                        SaveCaptureForDebug(bitmap);
 
                         // handle OCR
                         string ocrMethod = GetSelectedOcrMethod();
@@ -2495,7 +2654,8 @@ namespace RSTGameTranslation
             {
                 AutoFlush = true
             };
-            Console.SetOut(standardOutput);
+            // Tee to the session log file so file logging survives this Console.SetOut.
+            Console.SetOut(DebugFileLogger.WrapWithFile(standardOutput));
 
             // Write initial message
             Console.WriteLine("Console output initialized. Toggle visibility with the Log button.");
@@ -3015,6 +3175,14 @@ namespace RSTGameTranslation
             // Add to history
             _translationHistory.Enqueue(entry);
 
+            // Also keep the full (larger) history for the Debug > History tab.
+            lock (_fullTranslationHistory)
+            {
+                _fullTranslationHistory.Add(entry);
+                while (_fullTranslationHistory.Count > MAX_FULL_HISTORY)
+                    _fullTranslationHistory.RemoveAt(0);
+            }
+
             // Keep history size limited based on configuration
             int maxHistorySize = ConfigManager.Instance.GetChatBoxHistorySize();
             while (_translationHistory.Count > maxHistorySize)
@@ -3209,13 +3377,23 @@ namespace RSTGameTranslation
             else
             {
 
-                // Remove the last area from the list
+                // Guard the index before removing to avoid an out-of-range removal.
+                if (currentAreaIndex < 0 || currentAreaIndex >= savedTranslationAreas.Count)
+                    currentAreaIndex = savedTranslationAreas.Count - 1;
                 savedTranslationAreas.RemoveAt(currentAreaIndex);
 
                 // Default switch to area last index
                 if (savedTranslationAreas.Count >= 1)
                 {
                     SwitchToTranslationArea(savedTranslationAreas.Count - 1);
+                }
+                else
+                {
+                    // No areas left: stop treating a region as selected so capture halts
+                    // instead of grabbing the whole window.
+                    hasSelectedTranslationArea = false;
+                    currentAreaIndex = -1;
+                    UpdateCaptureRect();
                 }
             }
             Console.WriteLine("Previous translation area have been removed.");

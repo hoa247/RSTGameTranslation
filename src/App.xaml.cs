@@ -91,6 +91,10 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Mirror all Console output to a per-session file so diagnostics are
+        // available even when the app runs elevated (stdout detached).
+        DebugFileLogger.Init();
+
         // Force invariant culture for all threads to prevent locale-dependent
         // number formatting (e.g. comma vs period decimal separator) from
         // corrupting config values and other serialized data.

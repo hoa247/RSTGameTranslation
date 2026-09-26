@@ -125,6 +125,11 @@ namespace RSTGameTranslation
             // Load display mode from config
             _displayMode = ConfigManager.Instance.GetChatboxDisplayMode();
 
+            // Keep the ChatBox Start/Stop button label in sync with the app's running state.
+            _cbStateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _cbStateTimer.Tick += (s, e) => UpdateStartStopButton();
+            _cbStateTimer.Start();
+
             // Initialize the RichTextBox with a properly configured document
             chatHistoryText.Document = new FlowDocument()
             {
@@ -683,6 +688,56 @@ namespace RSTGameTranslation
             catch (Exception ex)
             {
                 Console.WriteLine($"Error applying ChatBox styling: {ex.Message}");
+            }
+        }
+
+        private System.Windows.Threading.DispatcherTimer? _cbStateTimer;
+
+        // Reflect the app's running state on the ChatBox Start/Stop button so the user can
+        // control translation from here without opening the main app window.
+        private void UpdateStartStopButton()
+        {
+            try
+            {
+                if (cbStartStopButton == null) return;
+                bool started = MainWindow.Instance != null && MainWindow.Instance.GetIsStarted();
+                cbStartStopButton.Content = started ? "⏸ Dừng" : "▶ Start";
+            }
+            catch { }
+        }
+
+        private void StartStopButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Start/Stop");
+            UpdateStartStopButton();
+        }
+
+        private void RetryButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Retry Translation");
+        }
+
+        private void ShowAreaButton_Click(object sender, RoutedEventArgs e)
+        {
+            KeyboardShortcuts.InvokeFunctionFromClick("Show Area");
+        }
+
+        private HistoryWindow? _historyWindow;
+
+        private void HistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_historyWindow == null || !_historyWindow.IsLoaded)
+                {
+                    _historyWindow = new HistoryWindow();
+                }
+                _historyWindow.Show();
+                _historyWindow.Activate();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error opening history window: {ex.Message}");
             }
         }
 

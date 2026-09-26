@@ -372,6 +372,7 @@ namespace RSTGameTranslation
 
             // Load Gemini models
             GeminiModelComboBox.Items.Clear();
+            GeminiModelComboBox.Items.Add("gemini-3.5-flash-lite");
             GeminiModelComboBox.Items.Add("gemma-3-12b-it");
             GeminiModelComboBox.Items.Add("gemini-2.0-flash-lite");
             GeminiModelComboBox.Items.Add("gemini-2.5-flash-lite");
@@ -407,7 +408,7 @@ namespace RSTGameTranslation
             }
             else
             {
-                GeminiModelComboBox.SelectedItem = "gemini-2.5-flash-lite";
+                GeminiModelComboBox.SelectedItem = "gemini-3.5-flash-lite";
             }
 
             // Set selected Groq model
@@ -870,7 +871,7 @@ namespace RSTGameTranslation
             }
             else if (TranslationServiceComboBox.SelectedItem.ToString() == "Gemini")
             {
-                configManager.SetGeminiModel(GeminiModelComboBox.SelectedItem.ToString() ?? "gemini-2.5-flash-lite");
+                configManager.SetGeminiModel(GeminiModelComboBox.SelectedItem.ToString() ?? "gemini-3.5-flash-lite");
             }
             else if (TranslationServiceComboBox.SelectedItem.ToString() == "Groq")
             {
