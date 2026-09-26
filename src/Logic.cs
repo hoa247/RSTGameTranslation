@@ -2413,25 +2413,38 @@ namespace RSTGameTranslation
 
         private void AddTranslatedTextObjectsToChatBox()
         {
+            // Combine every block of THIS translation pass into a single ChatBox entry so one
+            // translation = one entry (top-to-bottom). This keeps a multi-line subtitle together
+            // instead of splitting it into separate entries (important for "show only latest").
             var sortedTextObjects = _textObjects.OrderBy(t => t.Y).ToList();
+
+            var originals = new StringBuilder();
+            var translations = new StringBuilder();
 
             foreach (var textObject in sortedTextObjects)
             {
-                string originalText = textObject.Text;
-                string translatedText = textObject.TextTranslated;
+                string originalText = textObject.Text?.Trim() ?? "";
+                string translatedText = textObject.TextTranslated?.Trim() ?? "";
 
-                if (!string.IsNullOrEmpty(originalText) && !string.IsNullOrEmpty(translatedText))
-                {
-                    TranslationCompleted?.Invoke(this, new TranslationEventArgs
-                    {
-                        OriginalText = originalText,
-                        TranslatedText = translatedText
-                    });
-                }
-                else
+                if (originalText.Length == 0 || translatedText.Length == 0)
                 {
                     Console.WriteLine($"Skipping empty translation - Original: '{originalText}', Translated: '{translatedText}'");
+                    continue;
                 }
+
+                if (originals.Length > 0) originals.Append(' ');
+                originals.Append(originalText);
+                if (translations.Length > 0) translations.Append(' ');
+                translations.Append(translatedText);
+            }
+
+            if (originals.Length > 0 && translations.Length > 0)
+            {
+                TranslationCompleted?.Invoke(this, new TranslationEventArgs
+                {
+                    OriginalText = originals.ToString(),
+                    TranslatedText = translations.ToString()
+                });
             }
         }
 
