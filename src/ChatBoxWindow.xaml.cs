@@ -471,6 +471,10 @@ namespace RSTGameTranslation
                         {
                             success = await SupertonicTTSService.Instance.SpeakText(trimmedText);
                         }
+                        else if (ttsService == "Vivibe TTS")
+                        {
+                            success = await VivibeTTSService.Instance.SpeakText(trimmedText);
+                        }
                         else
                         {
                             Console.WriteLine($"Unsupported TTS service: {ttsService}");
@@ -774,7 +778,12 @@ namespace RSTGameTranslation
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            // Cancel the in-flight request AND clear the loading overlay. A cancelled
+            // translation never raises TranslationCompleted, so without this the
+            // "Đang dịch..." overlay would stay stuck forever.
             GeminiTranslationService.CancelCurrent();
+            HideTranslationStatus();
+            try { MonitorWindow.Instance?.HideTranslationStatus(); } catch { }
         }
 
         private void ShowAreaButton_Click(object sender, RoutedEventArgs e)

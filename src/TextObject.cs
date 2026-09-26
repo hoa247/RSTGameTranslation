@@ -527,6 +527,10 @@ namespace RSTGameTranslation
                             {
                                 success = await SupertonicTTSService.Instance.SpeakText(text);
                             }
+                            else if (ttsService == "Vivibe TTS")
+                            {
+                                success = await VivibeTTSService.Instance.SpeakText(text);
+                            }
                             else
                             {
                                 System.Windows.MessageBox.Show($"Text-to-Speech service '{ttsService}' is not supported yet.",

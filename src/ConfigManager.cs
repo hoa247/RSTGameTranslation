@@ -149,6 +149,11 @@ namespace RSTGameTranslation
         public const string ELEVENLABS_MODEL = "elevenlabs_model";
         public const string GOOGLE_TTS_API_KEY = "google_tts_api_key";
         public const string GOOGLE_TTS_VOICE = "google_tts_voice";
+        public const string VIVIBE_TTS_API_KEY = "vivibe_tts_api_key";
+        public const string VIVIBE_TTS_BASE_URL = "vivibe_tts_base_url";
+        public const string VIVIBE_TTS_VOICE = "vivibe_tts_voice";
+        public const string VIVIBE_TTS_SPEED = "vivibe_tts_speed";
+        public const string VIVIBE_TTS_BLOCK_VERSION = "vivibe_tts_block_version";
         public const string WINDOWS_TTS_VOICE = "windows_tts_voice";
         public const string SUPERTONIC_MODEL_DIR = "supertonic_model_dir";
         public const string SUPERTONIC_VOICE_STYLE = "supertonic_voice_style";
@@ -2708,6 +2713,81 @@ namespace RSTGameTranslation
                 SaveConfig();
                 Console.WriteLine($"ElevenLabs model set to: {modelId}");
             }
+        }
+
+        // ==================== Vivibe (LucyLab) TTS ====================
+        // Get/Set Vivibe TTS API key (Bearer token)
+        public string GetVivibeTtsApiKey()
+        {
+            return GetValue(VIVIBE_TTS_API_KEY, "");
+        }
+
+        public void SetVivibeTtsApiKey(string apiKey)
+        {
+            _configValues[VIVIBE_TTS_API_KEY] = apiKey;
+            SaveConfig();
+            Console.WriteLine("Vivibe TTS API key updated");
+        }
+
+        // Get/Set Vivibe TTS base URL (LucyLab JSON-RPC endpoint)
+        public string GetVivibeTtsBaseUrl()
+        {
+            return GetValue(VIVIBE_TTS_BASE_URL, "https://api.lucylab.io/json-rpc");
+        }
+
+        public void SetVivibeTtsBaseUrl(string baseUrl)
+        {
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                _configValues[VIVIBE_TTS_BASE_URL] = baseUrl;
+                SaveConfig();
+                Console.WriteLine($"Vivibe TTS base URL set to: {baseUrl}");
+            }
+        }
+
+        // Get/Set Vivibe TTS voice (userVoiceId)
+        // Default: "Trung Quân" - warm, calm, clear Northern male voice that suits
+        // reading varied game dialogue for long sessions.
+        public string GetVivibeTtsVoice()
+        {
+            return GetValue(VIVIBE_TTS_VOICE, "2LLtWibYKJaiLFeqVkzPGY");
+        }
+
+        public void SetVivibeTtsVoice(string voiceId)
+        {
+            _configValues[VIVIBE_TTS_VOICE] = voiceId;
+            SaveConfig();
+            Console.WriteLine($"Vivibe TTS voice set to: {voiceId}");
+        }
+
+        // Get/Set Vivibe TTS speed
+        public double GetVivibeTtsSpeed()
+        {
+            string raw = GetValue(VIVIBE_TTS_SPEED, "1.0");
+            return double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out double speed) ? speed : 1.0;
+        }
+
+        public void SetVivibeTtsSpeed(double speed)
+        {
+            _configValues[VIVIBE_TTS_SPEED] =
+                speed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            SaveConfig();
+            Console.WriteLine($"Vivibe TTS speed set to: {speed}");
+        }
+
+        // Get/Set Vivibe TTS block version (used for caching on the LucyLab side)
+        public int GetVivibeTtsBlockVersion()
+        {
+            string raw = GetValue(VIVIBE_TTS_BLOCK_VERSION, "0");
+            return int.TryParse(raw, out int version) ? version : 0;
+        }
+
+        public void SetVivibeTtsBlockVersion(int version)
+        {
+            _configValues[VIVIBE_TTS_BLOCK_VERSION] = version.ToString();
+            SaveConfig();
+            Console.WriteLine($"Vivibe TTS block version set to: {version}");
         }
 
         // Get/Set Windows TTS voice

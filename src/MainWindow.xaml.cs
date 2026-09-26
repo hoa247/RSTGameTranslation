@@ -1665,6 +1665,7 @@ namespace RSTGameTranslation
                     GoogleTTSService.StopAllTTS();
                     ElevenLabsService.StopAllTTS();
                     SupertonicTTSService.StopAllTTS();
+                    VivibeTTSService.StopAllTTS();
                 }
                 ShowFastNotification(LocalizationManager.Instance.Strings["NotificationTitle_TranslationStopped"], LocalizationManager.Instance.Strings["NotificationMessage_TranslationStopped_Details"]);
                 StartStatusEllipse.Fill = new SolidColorBrush(Color.FromRgb(239, 68, 68)); // Red

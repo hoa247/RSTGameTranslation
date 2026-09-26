@@ -1545,6 +1545,7 @@
                                     <ComboBoxItem Content="Google Cloud TTS"/>
                                     <ComboBoxItem Content="Windows TTS"/>
                                     <ComboBoxItem Content="Supertonic"/>
+                                    <ComboBoxItem Content="Vivibe TTS"/>
                                 </ComboBox>
                                 
                                 <!-- ElevenLabs API Key - Only visible when ElevenLabs is selected -->
@@ -1769,10 +1770,113 @@
                                 </TextBlock>
                             </Grid>
                         </GroupBox>
+
+                        <!-- Vivibe (LucyLab) TTS Settings -->
+                        <GroupBox x:Name="vivibeTtsSettingsGroupBox" Header="Vivibe TTS (LucyLab API)" Margin="0,0,0,15" Padding="10" Visibility="Collapsed">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- API Key -->
+                                <TextBlock Text="API Key:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top" Margin="0,8,10,0"/>
+                                <Grid Grid.Row="0" Grid.Column="1" Margin="0,5,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <PasswordBox x:Name="vivibeTtsApiKeyPasswordBox" Grid.Row="0"
+                                             VerticalAlignment="Top" Margin="0,0,0,2"
+                                             PasswordChanged="VivibeTtsApiKeyPasswordBox_PasswordChanged"/>
+                                    <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11"
+                                               Text="Bearer token for the Vivibe / LucyLab TTS API."/>
+                                </Grid>
+
+                                <!-- Base URL -->
+                                <TextBlock Text="Base URL:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <TextBox x:Name="vivibeTtsBaseUrlTextBox" Grid.Row="1" Grid.Column="1" Margin="0,5"
+                                         LostFocus="VivibeTtsBaseUrlTextBox_LostFocus"/>
+
+                                <!-- Voice picker: search + load -->
+                                <TextBlock Text="Giọng nói:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <Grid Grid.Row="2" Grid.Column="1" Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <TextBox x:Name="vivibeVoiceSearchTextBox" Padding="4,3"
+                                                 VerticalContentAlignment="Center"
+                                                 TextChanged="VivibeVoiceSearchTextBox_TextChanged"/>
+                                        <TextBlock x:Name="vivibeVoiceSearchHint" Text="🔍  Tìm theo tên, mô tả, tag..."
+                                                   Foreground="#999" Margin="7,0,0,0" VerticalAlignment="Center"
+                                                   IsHitTestVisible="False"/>
+                                    </Grid>
+                                    <Button x:Name="vivibeLoadVoicesButton" Grid.Column="1" Content="Tải danh sách"
+                                            Padding="8,3" Margin="8,0,0,0" Click="VivibeLoadVoicesButton_Click"/>
+                                </Grid>
+
+                                <!-- Voice list with per-row preview -->
+                                <ListBox x:Name="vivibeVoicesListBox" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                         Height="280" Margin="0,5" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                         SelectionChanged="VivibeVoicesListBox_SelectionChanged"
+                                         PreviewMouseWheel="VivibeVoicesListBox_PreviewMouseWheel"
+                                         HorizontalContentAlignment="Stretch">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Content="▶" Width="30" Height="30"
+                                                        VerticalAlignment="Top" Margin="0,0,8,0"
+                                                        Click="VivibeVoicePreviewButton_Click"
+                                                        ToolTip="Nghe thử"/>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
+                                                               FontSize="11" Foreground="#666" Margin="0,1,0,0"/>
+                                                    <TextBlock Text="{Binding TagsText}" FontSize="10"
+                                                               Foreground="#999" Margin="0,1,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <!-- Selected voice id (manual entry / fallback) -->
+                                <TextBlock Text="Voice ID:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"/>
+                                <TextBox x:Name="vivibeTtsVoiceTextBox" Grid.Row="4" Grid.Column="1" Margin="0,5"
+                                         LostFocus="VivibeTtsVoiceTextBox_LostFocus"
+                                         ToolTip="Chọn giọng ở danh sách trên, hoặc dán Voice ID thủ công"/>
+
+                                <!-- Speed -->
+                                <TextBlock Text="Speed:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="0,5,10,0"
+                                           ToolTip="Speech speed. 1.0 = normal."/>
+                                <TextBox x:Name="vivibeTtsSpeedTextBox" Grid.Row="5" Grid.Column="1" Margin="0,5"
+                                         LostFocus="VivibeTtsSpeedTextBox_LostFocus"/>
+
+                                <!-- Help / info -->
+                                <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,0" TextWrapping="Wrap" FontSize="11"
+                                           Text="Vivibe TTS reads translated text aloud through the LucyLab cloud API. Read-aloud only — no audio file is exported."/>
+                            </Grid>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            
+
             <!-- Hot Keys Tab -->
             <TabItem Header="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Tab_HotKeys]}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">

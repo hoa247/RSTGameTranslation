@@ -2405,6 +2405,7 @@ namespace RSTGameTranslation
                 bool isGoogleTtsSelected = selectedService == "Google Cloud TTS";
                 bool isWindowTtsSelected = selectedService == "Windows TTS";
                 bool isSupertonicSelected = selectedService == "Supertonic";
+                bool isVivibeSelected = selectedService == "Vivibe TTS";
 
                 // Make sure the window is fully loaded and controls are initialized
                 if (elevenLabsApiKeyLabel == null || elevenLabsApiKeyGrid == null ||
@@ -2451,6 +2452,12 @@ namespace RSTGameTranslation
                 if (supertonicSettingsGroupBox != null)
                 {
                     supertonicSettingsGroupBox.Visibility = isSupertonicSelected ? Visibility.Visible : Visibility.Collapsed;
+                }
+
+                // Show/hide Vivibe TTS-specific settings
+                if (vivibeTtsSettingsGroupBox != null)
+                {
+                    vivibeTtsSettingsGroupBox.Visibility = isVivibeSelected ? Visibility.Visible : Visibility.Collapsed;
                 }
                 // Load service-specific settings if they're being shown
                 if (isElevenLabsSelected)
@@ -2540,10 +2547,273 @@ namespace RSTGameTranslation
                             ConfigManager.Instance.GetSupertonicSpeed()
                                 .ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
                 }
+                else if (isVivibeSelected)
+                {
+                    // Vivibe (LucyLab) TTS - API-based, load stored settings.
+                    if (vivibeTtsApiKeyPasswordBox != null)
+                        vivibeTtsApiKeyPasswordBox.Password = ConfigManager.Instance.GetVivibeTtsApiKey();
+                    if (vivibeTtsBaseUrlTextBox != null)
+                        vivibeTtsBaseUrlTextBox.Text = ConfigManager.Instance.GetVivibeTtsBaseUrl();
+                    if (vivibeTtsVoiceTextBox != null)
+                        vivibeTtsVoiceTextBox.Text = ConfigManager.Instance.GetVivibeTtsVoice();
+                    if (vivibeTtsSpeedTextBox != null)
+                        vivibeTtsSpeedTextBox.Text =
+                            ConfigManager.Instance.GetVivibeTtsSpeed()
+                                .ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+
+                    // Populate the voice list; auto-load once if we have an API key.
+                    PopulateVivibeVoicesList();
+                    if (_vivibeAllVoices.Count == 0 && !_vivibeVoicesLoading &&
+                        !string.IsNullOrWhiteSpace(ConfigManager.Instance.GetVivibeTtsApiKey()))
+                    {
+                        _ = LoadVivibeVoicesAsync();
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating TTS service-specific settings: {ex.Message}");
+            }
+        }
+
+        // ==================== Vivibe TTS handlers ====================
+
+        private void VivibeTtsApiKeyPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                ConfigManager.Instance.SetVivibeTtsApiKey(vivibeTtsApiKeyPasswordBox.Password.Trim());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Vivibe TTS API key: {ex.Message}");
+            }
+        }
+
+        private void VivibeTtsBaseUrlTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                ConfigManager.Instance.SetVivibeTtsBaseUrl(vivibeTtsBaseUrlTextBox.Text.Trim());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Vivibe TTS base URL: {ex.Message}");
+            }
+        }
+
+        private void VivibeTtsVoiceTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                ConfigManager.Instance.SetVivibeTtsVoice(vivibeTtsVoiceTextBox.Text.Trim());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Vivibe TTS voice: {ex.Message}");
+            }
+        }
+
+        private void VivibeTtsSpeedTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                if (double.TryParse(vivibeTtsSpeedTextBox.Text.Trim(),
+                        System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out double speed))
+                {
+                    ConfigManager.Instance.SetVivibeTtsSpeed(speed);
+                }
+                else
+                {
+                    // Revert to the stored value on invalid input.
+                    vivibeTtsSpeedTextBox.Text =
+                        ConfigManager.Instance.GetVivibeTtsSpeed()
+                            .ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Vivibe TTS speed: {ex.Message}");
+            }
+        }
+
+        // ==================== Vivibe TTS voice picker ====================
+
+        protected override void OnClosed(EventArgs e)
+        {
+            // Stop any voice sample still playing when the settings window closes.
+            try { VivibeVoicesService.StopSample(); } catch { }
+            base.OnClosed(e);
+        }
+
+        private List<VivibeVoice> _vivibeAllVoices = new List<VivibeVoice>();
+        private bool _vivibeVoicesLoading = false;
+        private VivibeVoice? _vivibePreviewingVoice;
+
+        private async void VivibeLoadVoicesButton_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadVivibeVoicesAsync();
+        }
+
+        private async Task LoadVivibeVoicesAsync()
+        {
+            if (_vivibeVoicesLoading) return;
+            _vivibeVoicesLoading = true;
+            try
+            {
+                if (vivibeLoadVoicesButton != null)
+                {
+                    vivibeLoadVoicesButton.IsEnabled = false;
+                    vivibeLoadVoicesButton.Content = "Đang tải...";
+                }
+
+                string apiKey = ConfigManager.Instance.GetVivibeTtsApiKey();
+                string baseUrl = ConfigManager.Instance.GetVivibeTtsBaseUrl();
+                _vivibeAllVoices = await VivibeVoicesService.GetVoicesAsync(baseUrl, apiKey);
+                PopulateVivibeVoicesList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không tải được danh sách giọng: {ex.Message}",
+                    "Vivibe TTS", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                _vivibeVoicesLoading = false;
+                if (vivibeLoadVoicesButton != null)
+                {
+                    vivibeLoadVoicesButton.IsEnabled = true;
+                    vivibeLoadVoicesButton.Content = "Tải danh sách";
+                }
+            }
+        }
+
+        // Rebuild the ListBox from the cached voices, applying the search filter.
+        private void PopulateVivibeVoicesList()
+        {
+            if (vivibeVoicesListBox == null) return;
+
+            string filter = vivibeVoiceSearchTextBox?.Text?.Trim().ToLowerInvariant() ?? "";
+            IEnumerable<VivibeVoice> items = _vivibeAllVoices;
+            if (!string.IsNullOrEmpty(filter))
+                items = _vivibeAllVoices.Where(v => v.SearchText.Contains(filter));
+
+            // Detach selection handler while rebinding so pre-selecting the current
+            // voice doesn't re-save the same value.
+            vivibeVoicesListBox.SelectionChanged -= VivibeVoicesListBox_SelectionChanged;
+            vivibeVoicesListBox.ItemsSource = items.ToList();
+
+            string current = ConfigManager.Instance.GetVivibeTtsVoice();
+            if (!string.IsNullOrEmpty(current))
+            {
+                foreach (var obj in vivibeVoicesListBox.Items)
+                {
+                    if (obj is VivibeVoice v && string.Equals(v.Id, current, StringComparison.OrdinalIgnoreCase))
+                    {
+                        vivibeVoicesListBox.SelectedItem = obj;
+                        break;
+                    }
+                }
+            }
+            vivibeVoicesListBox.SelectionChanged += VivibeVoicesListBox_SelectionChanged;
+        }
+
+        private void VivibeVoiceSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            // Toggle the placeholder hint regardless of init state.
+            if (vivibeVoiceSearchHint != null)
+            {
+                vivibeVoiceSearchHint.Visibility =
+                    string.IsNullOrEmpty(vivibeVoiceSearchTextBox?.Text)
+                        ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (_isInitializing) return;
+            PopulateVivibeVoicesList();
+        }
+
+        // Scroll the voice list's own ScrollViewer so the mouse wheel doesn't get
+        // stolen by the outer settings ScrollViewer (nested-scroll fix).
+        private void VivibeVoicesListBox_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (sender is DependencyObject d)
+            {
+                var sv = FindVisualChild<System.Windows.Controls.ScrollViewer>(d);
+                if (sv != null)
+                {
+                    sv.ScrollToVerticalOffset(sv.VerticalOffset - e.Delta / 3.0);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            int count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child is T typed) return typed;
+                var result = FindVisualChild<T>(child);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
+        private void VivibeVoicesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (vivibeVoicesListBox?.SelectedItem is VivibeVoice voice)
+            {
+                ConfigManager.Instance.SetVivibeTtsVoice(voice.Id);
+                if (vivibeTtsVoiceTextBox != null) vivibeTtsVoiceTextBox.Text = voice.Id;
+            }
+        }
+
+        private async void VivibeVoicePreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button btn || btn.DataContext is not VivibeVoice voice)
+                return;
+
+            // Toggle: clicking the button of the voice that's currently playing stops it.
+            if (VivibeVoicesService.IsPlaying && _vivibePreviewingVoice != null &&
+                _vivibePreviewingVoice.Id == voice.Id)
+            {
+                VivibeVoicesService.StopSample();
+                _vivibePreviewingVoice = null;
+                return; // the onStopped callback resets the button to ▶
+            }
+
+            if (string.IsNullOrEmpty(voice.SampleUrl))
+            {
+                MessageBox.Show("Giọng này không có mẫu nghe thử.",
+                    "Vivibe TTS", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                _vivibePreviewingVoice = voice;
+                bool started = await VivibeVoicesService.PlaySampleAsync(voice.SampleUrl, () =>
+                {
+                    // Reset this button back to play when the sample stops
+                    // (natural end or replaced by another preview).
+                    Dispatcher.Invoke(() => btn.Content = "▶");
+                });
+                if (started) btn.Content = "■";
+            }
+            catch (Exception ex)
+            {
+                _vivibePreviewingVoice = null;
+                btn.Content = "▶";
+                Console.WriteLine($"Vivibe voice preview error: {ex.Message}");
+                MessageBox.Show($"Không phát được mẫu nghe thử: {ex.Message}",
+                    "Vivibe TTS", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
