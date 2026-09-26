@@ -2464,7 +2464,7 @@ namespace RSTGameTranslation
 
         public double GetChatboxPositionWidth()
         {
-            string value = GetValue(CHATBOX_POSITION_WIDTH, "400");
+            string value = GetValue(CHATBOX_POSITION_WIDTH, "900");
             if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double width))
             {
                 return Math.Max(200, width); // Minimum width

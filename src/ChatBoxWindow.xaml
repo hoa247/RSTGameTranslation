@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RSTGameTranslation"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[ChatBox_Title]}"
-        Height="300" Width="400"
+        Height="300" Width="900" MinWidth="820"
         Topmost="True"
         AllowsTransparency="True"
         Background="#80000000"

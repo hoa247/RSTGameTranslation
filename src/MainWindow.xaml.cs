@@ -884,7 +884,7 @@ namespace RSTGameTranslation
                     ttsToggleButton.Content = enabled ? "Đọc bản dịch: Bật" : "Đọc bản dịch: Tắt";
                     ttsToggleButton.Background = enabled
                         ? new SolidColorBrush(Color.FromRgb(20, 180, 20))    // green when on
-                        : new SolidColorBrush(Color.FromRgb(99, 102, 241));  // indigo when off
+                        : new SolidColorBrush(Color.FromRgb(107, 114, 128)); // gray when off
                 });
             }
             catch (Exception ex) { Console.WriteLine($"UpdateTtsButtonUI failed: {ex.Message}"); }
@@ -952,7 +952,7 @@ namespace RSTGameTranslation
                         audioServiceButton.Content = enabled ? "Audio STT: On" : "Audio STT: Off";
                     }
 
-                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(100, 116, 139));
+                    audioServiceButton.Background = enabled ? new SolidColorBrush(Color.FromRgb(20, 180, 20)) : new SolidColorBrush(Color.FromRgb(107, 114, 128)); // green on / gray off
                 });
             }
             catch (Exception ex)
