@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -19,6 +21,22 @@ namespace RSTGameTranslation
         public static void CancelCurrent()
         {
             try { _currentCts?.Cancel(); } catch { }
+        }
+
+        // Extract the human-readable error.message from a Gemini error payload,
+        // falling back to the raw body when it isn't JSON.
+        private static string ExtractGeminiErrorMessage(string errorMessage)
+        {
+            if (string.IsNullOrEmpty(errorMessage)) return "Unknown error";
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(errorMessage);
+                if (doc.RootElement.TryGetProperty("error", out JsonElement err) &&
+                    err.TryGetProperty("message", out JsonElement msg))
+                    return msg.GetString() ?? errorMessage;
+            }
+            catch { }
+            return errorMessage;
         }
 
         private static int _consecutiveFailures = 0;
@@ -109,6 +127,14 @@ namespace RSTGameTranslation
         /// <param name="prompt">The prompt to guide the translation</param>
         /// <returns>The translation result as a JSON string or null if translation failed</returns>
         public async Task<string?> TranslateAsync(string jsonData, string prompt)
+        {
+            return await TranslateAsyncCore(jsonData, prompt, new HashSet<string>());
+        }
+
+        // triedKeys: the API keys already attempted for THIS request. On a quota/
+        // rate-limit error we rotate to a key not yet in this set; once every key
+        // has been tried we stop (no waiting/looping) and ask the user to add keys.
+        private async Task<string?> TranslateAsyncCore(string jsonData, string prompt, HashSet<string> triedKeys)
         {
             string apiKey = ConfigManager.Instance.GetGeminiApiKey();
             string currenServices = ConfigManager.Instance.GetCurrentTranslationService();
@@ -227,30 +253,50 @@ namespace RSTGameTranslation
                     }
                     catch { }
 
-                    // Check if we should switch API key
+                    // Quota / rate-limit / invalid-key errors: rotate to a key we haven't
+                    // tried yet for THIS request. Once every key has been tried and still
+                    // fails, stop and tell the user to add new keys - no waiting/looping,
+                    // which only deepens the rate limit.
                     if (ShouldSwitchApiKey(response.StatusCode, errorMessage))
                     {
-                        string newApikey = null;
+                        triedKeys.Add(apiKey);
+
+                        string? nextKey = null;
                         lock (_keySwitchLock)
                         {
-                            newApikey = ConfigManager.Instance.GetNextApiKey(currenServices, apiKey);
-                            if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                            var keys = ConfigManager.Instance.GetApiKeysList(currenServices);
+                            nextKey = keys.FirstOrDefault(k =>
+                                !string.IsNullOrWhiteSpace(k) && !triedKeys.Contains(k.Trim()));
+                            if (!string.IsNullOrEmpty(nextKey))
                             {
-                                ConfigManager.Instance.SetGeminiApiKey(newApikey);
-                                Console.WriteLine($"Switched API key from {MaskApiKey(apiKey)} to {MaskApiKey(newApikey)}");
-                                _retryCount++;
-                            }
-                            else
-                            {
-                                Console.WriteLine("No more API keys available to switch to");
+                                ConfigManager.Instance.SetGeminiApiKey(nextKey);
+                                Console.WriteLine($"HTTP {(int)response.StatusCode}: switching to next key {MaskApiKey(nextKey)} ({triedKeys.Count} tried)");
                             }
                         }
 
-                        // Retry with new key (outside lock)
-                        if (!string.IsNullOrEmpty(newApikey) && newApikey != apiKey)
+                        // A fresh key is available -> retry with it.
+                        if (!string.IsNullOrEmpty(nextKey))
                         {
-                            return await TranslateAsync(jsonData, prompt);
+                            return await TranslateAsyncCore(jsonData, prompt, triedKeys);
                         }
+
+                        // Every key exhausted -> stop and ask the user to add more.
+                        string quotaMsg = ExtractGeminiErrorMessage(errorMessage);
+                        int keyCount = triedKeys.Count;
+                        try
+                        {
+                            System.IO.File.WriteAllText("gemini_last_error.txt",
+                                $"Gemini API error: {quotaMsg}\n\nResponse code: {response.StatusCode}\nAll {keyCount} key(s) exhausted.\nFull response: {errorMessage}");
+                        }
+                        catch { }
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            ChatBoxWindow.Instance?.ShowError(
+                                $"Tất cả {keyCount} API key đều hết quota / bị chặn (HTTP {(int)response.StatusCode}).\n" +
+                                $"➕ Hãy thêm API key mới (mỗi key từ một Google project khác) trong Cài đặt để dịch tiếp.\n\n" +
+                                $"Chi tiết: {quotaMsg}");
+                        });
+                        return null;
                     }
 
                     // Parse error message
@@ -266,19 +312,16 @@ namespace RSTGameTranslation
                             {
                                 detailedError = messageElement.GetString() ?? "";
                             }
-                            // Show error if too many consecutive failures
-                            if (_consecutiveFailures > 3)
-                            {
-                                // Write error to file
-                                System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
-
-                                // Non-blocking notification (a modal dialog here interrupts gameplay).
-                                System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                            // Always record + surface the error so it can be read (quota/rate-limit
+                            // errors need to be visible on the first failure, not after several).
+                            System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {detailedError}\n\nResponse code: {response.StatusCode}\nFull response: {errorMessage}");
+                            System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                                ChatBoxWindow.Instance?.ShowError($"{detailedError}\n\n(HTTP {(int)response.StatusCode})");
+                                if (_consecutiveFailures > 3)
                                     MainWindow.Instance?.ShowFastNotification(
                                         LocalizationManager.Instance.Strings["Title_GeminiError"],
                                         string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiError"], detailedError));
-                                });
-                            }
+                            });
                             await Task.Delay(delayMS);
                             return null;
                         }
@@ -287,18 +330,14 @@ namespace RSTGameTranslation
                     {
                         // If we can't parse as JSON, just use the raw message
                     }
-                    if (_consecutiveFailures > 3)
-                    {
-                        // Write error to file
-                        System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
-
-                        // Non-blocking notification instead of a modal dialog.
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                    System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {response.StatusCode}\n\nFull response: {errorMessage}");
+                    System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                        ChatBoxWindow.Instance?.ShowError($"HTTP {(int)response.StatusCode}\n\n{errorMessage}");
+                        if (_consecutiveFailures > 3)
                             MainWindow.Instance?.ShowFastNotification(
                                 LocalizationManager.Instance.Strings["Title_GeminiError"],
                                 string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiErrorStatus"], response.StatusCode, errorMessage));
-                        });
-                    }
+                    });
                     await Task.Delay(delayMS);
                     return null;
                 }
@@ -316,9 +355,9 @@ namespace RSTGameTranslation
                 // Write error to file
                 System.IO.File.WriteAllText("gemini_last_error.txt", $"Gemini API error: {ex.Message}\n\nStack trace: {ex.StackTrace}");
 
-                // Non-blocking notification instead of a modal dialog (network errors are common
-                // mid-game and a blocking popup freezes the whole app until dismissed).
+                // Persistent, readable error banner plus the (fast) tray notification.
                 System.Windows.Application.Current.Dispatcher.Invoke(() => {
+                    ChatBoxWindow.Instance?.ShowError(ex.Message);
                     MainWindow.Instance?.ShowFastNotification(
                         LocalizationManager.Instance.Strings["Title_GeminiError"],
                         string.Format(LocalizationManager.Instance.Strings["Msg_GeminiApiException"], ex.Message));

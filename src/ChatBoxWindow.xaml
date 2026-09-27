@@ -293,6 +293,24 @@
             </StackPanel>
         </Border>
 
+        <!-- Persistent error banner: stays until dismissed or a translation succeeds -->
+        <Border x:Name="cbErrorBanner" Visibility="Collapsed" Panel.ZIndex="5"
+                VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="0,28,0,0"
+                Background="#F22B0B0B" BorderBrush="#EF4444" BorderThickness="0,0,0,2" MaxHeight="200">
+            <DockPanel LastChildFill="True" Margin="10,8,8,8">
+                <Button x:Name="cbErrorCloseButton" DockPanel.Dock="Right" Content="✕" Width="24" Height="24"
+                        VerticalAlignment="Top" Background="Transparent" Foreground="#FCA5A5" BorderThickness="0"
+                        Cursor="Hand" Click="ErrorBannerClose_Click" ToolTip="Đóng"/>
+                <StackPanel>
+                    <TextBlock Text="⚠ Lỗi dịch (Gemini)" Foreground="#FCA5A5" FontWeight="Bold" FontSize="12" Margin="0,0,0,3"/>
+                    <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock x:Name="cbErrorText" Text="" Foreground="#FFE0E0" TextWrapping="Wrap" FontSize="12"/>
+                    </ScrollViewer>
+                    <TextBlock Text="Chi tiết đã lưu trong gemini_last_error.txt" Foreground="#99FCA5A5" FontSize="10" Margin="0,4,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
         <!-- Translation in progress indicator -->
         <Border x:Name="translationStatusPanel"
                 Height="30" 

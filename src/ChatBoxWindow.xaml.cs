@@ -782,6 +782,8 @@ namespace RSTGameTranslation
             // translation never raises TranslationCompleted, so without this the
             // "Đang dịch..." overlay would stay stuck forever.
             GeminiTranslationService.CancelCurrent();
+            // Clear the busy gate so the next OCR/translate isn't skipped after a cancel.
+            try { Logic.Instance.SetWaitingForTranslationToFinish(false); } catch { }
             HideTranslationStatus();
             try { MonitorWindow.Instance?.HideTranslationStatus(); } catch { }
         }
@@ -860,6 +862,8 @@ namespace RSTGameTranslation
                     chatScrollViewer.Margin = new Thickness(0, h, 0, 30);
                 if (cbLoadingOverlay != null)
                     cbLoadingOverlay.Margin = new Thickness(0, h, 0, 30);
+                if (cbErrorBanner != null)
+                    cbErrorBanner.Margin = new Thickness(0, h, 0, 0);
                 if (toggleBordersButton != null)
                     toggleBordersButton.Margin = new Thickness(0, h + 2, 10, 0);
             }
@@ -1459,8 +1463,33 @@ namespace RSTGameTranslation
             }
         }
 
+        // Show a persistent error banner (e.g. Gemini quota/API errors) that stays
+        // until the user closes it or the next translation succeeds - so the error
+        // can actually be read instead of flashing past in a tray balloon.
+        public void ShowError(string message)
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(() => ShowError(message)); return; }
+            if (cbErrorBanner == null || cbErrorText == null) return;
+            cbErrorText.Text = string.IsNullOrWhiteSpace(message) ? "Unknown error" : message.Trim();
+            cbErrorBanner.Visibility = Visibility.Visible;
+        }
+
+        public void HideError()
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(HideError); return; }
+            if (cbErrorBanner != null) cbErrorBanner.Visibility = Visibility.Collapsed;
+        }
+
+        private void ErrorBannerClose_Click(object sender, RoutedEventArgs e)
+        {
+            HideError();
+        }
+
         public void OnTranslationWasAdded(string originalText, string translatedText, bool fromClipboard=false)
         {
+            // A translation arrived, so clear any lingering error banner.
+            HideError();
+
             // Hide translation status indicator if it was visible
             HideTranslationStatus();
 

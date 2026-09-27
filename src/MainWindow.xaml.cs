@@ -504,7 +504,7 @@ namespace RSTGameTranslation
             {
                 try
                 {
-                    Logic.Instance.RetryCurrentTranslation();
+                    RetranslateCurrentScreen();
                 }
                 catch (Exception ex)
                 {
@@ -782,6 +782,34 @@ namespace RSTGameTranslation
         }
 
         /// <summary>
+        /// Re-translate whatever is on screen right now ("Dịch lại"). Always runs,
+        /// even if a previous translation is slow, failed, or left the pipeline
+        /// flagged as busy: it cancels the in-flight request, clears the busy gate,
+        /// then captures the current screen so OCR + translation run fresh.
+        /// </summary>
+        public void RetranslateCurrentScreen()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(RetranslateCurrentScreen);
+                return;
+            }
+
+            try
+            {
+                GeminiTranslationService.CancelCurrent();
+                Logic.Instance.SetWaitingForTranslationToFinish(false);
+                Logic.Instance.ResetHash();   // bypass the similarity dedup
+                isStopOCR = false;            // make sure OCR isn't latched off
+                PerformCapture();             // capture current screen -> async OCR/translate
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RetranslateCurrentScreen error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Captures and translates a one-off area exactly once, then restores the previous default
         /// area. The bitmap is grabbed synchronously so reverting the area immediately afterwards is
         /// safe; the async OCR/translate keeps working on the already-captured image.
@@ -801,7 +829,12 @@ namespace RSTGameTranslation
                 selectedTranslationArea = areaInfo;
                 UpdateCustomCaptureRect();
 
+                // Force a fresh translation even if a previous request is still
+                // flagged busy, otherwise the OCR result is silently skipped.
+                GeminiTranslationService.CancelCurrent();
+                Logic.Instance.SetWaitingForTranslationToFinish(false);
                 Logic.Instance.ResetHash();  // don't let the similarity dedup skip this one-off
+                isStopOCR = false;
                 PerformCapture();            // synchronous capture -> async OCR/translate follows
                 Console.WriteLine("One-off area translated; reverting to previous area");
             }
