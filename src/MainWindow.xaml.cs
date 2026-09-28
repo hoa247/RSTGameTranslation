@@ -1354,6 +1354,18 @@ namespace RSTGameTranslation
             {
                 Console.WriteLine($"Supertonic warm-up trigger failed: {ex.Message}");
             }
+
+            // Open the ChatBox on app launch when the user enabled "auto ChatBox". Previously this
+            // only happened on pressing Start; the user wants the ChatBox up as soon as the app opens.
+            // Deferred to Loaded priority so the ChatBox window and layout are fully ready.
+            if (ConfigManager.Instance.IsStartAutoChatBoxEnabled())
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try { if (!isChatBoxVisible) ToggleChatBox(); }
+                    catch (Exception ex) { Console.WriteLine($"Auto-open ChatBox on launch failed: {ex.Message}"); }
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
+            }
             }
             catch (Exception ex)
             {

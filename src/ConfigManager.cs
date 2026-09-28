@@ -69,6 +69,10 @@ namespace RSTGameTranslation
         // Config keys
         public const string GEMINI_API_KEY = "gemini_api_key";
         public const string GEMINI_MODEL = "gemini_model";
+        // Hedged translation: fire this many keys in parallel and take the fastest result (1 = off).
+        public const string GEMINI_PARALLEL_KEYS = "gemini_parallel_keys";
+        // Max seconds to wait for a single Gemini request before treating it as a (retryable) error.
+        public const string GEMINI_REQUEST_TIMEOUT_SEC = "gemini_request_timeout_sec";
         public const string CUSTOM_API_KEY = "custom_api_key";
         public const string CUSTOM_API_URL = "custom_api_url";
         public const string CUSTOM_API_MODEL = "custom_api_model";
@@ -573,7 +577,7 @@ namespace RSTGameTranslation
             _configValues[CHATGPT_API_KEY] = "<your API key here>";
             _configValues[MISTRAL_MODEL] = "open-mistral-nemo";
             _configValues[MISTRAL_API_KEY] = "<your API key here>";
-            _configValues[GROQ_MODEL] = "moonshotai/kimi-k2-instruct-0905";
+            _configValues[GROQ_MODEL] = "openai/gpt-oss-120b";
             _configValues[GROQ_API_KEY] = "<your API key here>";
             _configValues[GEMINI_MODEL] = "gemini-3.5-flash-lite";
             _configValues[BLOCK_DETECTION_SCALE] = (3.00).ToString(CultureInfo.InvariantCulture);
@@ -2967,10 +2971,42 @@ namespace RSTGameTranslation
             }
         }
 
+        // Number of keys to race in parallel per translation (hedged requests). 1 = disabled.
+        // Clamped to [1, 5] to avoid burning free-tier quota too fast.
+        public int GetGeminiParallelKeys()
+        {
+            // Default 2: hedging only actually kicks in when the user has >=2 healthy keys,
+            // otherwise the race path falls back to the normal single-key call.
+            int n = int.TryParse(GetValue(GEMINI_PARALLEL_KEYS, "2"), out int v) ? v : 2;
+            return Math.Max(1, Math.Min(5, n));
+        }
+
+        public void SetGeminiParallelKeys(int count)
+        {
+            _configValues[GEMINI_PARALLEL_KEYS] = Math.Max(1, Math.Min(5, count)).ToString();
+            SaveConfig();
+            Console.WriteLine($"Gemini parallel keys set to: {GetGeminiParallelKeys()}");
+        }
+
+        // Per-request timeout in seconds. Over this the request is aborted and counts as a
+        // (retryable) error. Clamped to [3, 180]; default 30.
+        public int GetGeminiRequestTimeoutSec()
+        {
+            int n = int.TryParse(GetValue(GEMINI_REQUEST_TIMEOUT_SEC, "30"), out int v) ? v : 30;
+            return Math.Max(3, Math.Min(180, n));
+        }
+
+        public void SetGeminiRequestTimeoutSec(int seconds)
+        {
+            _configValues[GEMINI_REQUEST_TIMEOUT_SEC] = Math.Max(3, Math.Min(180, seconds)).ToString();
+            SaveConfig();
+            Console.WriteLine($"Gemini request timeout set to: {GetGeminiRequestTimeoutSec()}s");
+        }
+
         // Get Groq model
         public string GetGroqModel()
         {
-            return GetValue(GROQ_MODEL, "moonshotai/kimi-k2-instruct-0905"); // Default to qwen/qwen3-32b
+            return GetValue(GROQ_MODEL, "openai/gpt-oss-120b"); // Recommended: fast + good Vietnamese quality
         }
 
         // Set Groq model

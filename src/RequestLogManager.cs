@@ -21,10 +21,12 @@ namespace RSTGameTranslation
         public bool Success { get; set; }
         public bool CacheHit { get; set; }                        // served from local cache (no LLM call, $0)
         public string Status { get; set; } = string.Empty;        // "OK", "CACHE HIT", or an error string
+        public long DurationMs { get; set; }                      // wall-clock time of the LLM HTTP call
 
         public string TimeText => Time.ToString("HH:mm:ss");
         public string CostText => EstimatedCostUsd <= 0 ? "~$0" : $"${EstimatedCostUsd:F6}";
         public string TokensText => $"{PromptTokens} in / {OutputTokens} out";
+        public string DurationText => DurationMs <= 0 ? "-" : $"{DurationMs} ms";
     }
 
     /// <summary>

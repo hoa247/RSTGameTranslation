@@ -43,6 +43,11 @@ namespace RSTGameTranslation
                                 prompt_tokens INTEGER, output_tokens INTEGER, total_tokens INTEGER,
                                 cost_usd REAL, success INTEGER, status TEXT, cache_hit INTEGER);");
 
+                    // Add the latency column for databases created before it existed.
+                    // ALTER fails if the column is already there, so ignore that error.
+                    try { Exec("ALTER TABLE request_log ADD COLUMN duration_ms INTEGER;"); }
+                    catch { /* column already present */ }
+
                     _ready = true;
                     Console.WriteLine($"[DB] ready: {path}");
                 }
@@ -115,8 +120,8 @@ namespace RSTGameTranslation
                 {
                     using var cmd = _conn!.CreateCommand();
                     cmd.CommandText = @"INSERT INTO request_log(time, day, profile, service, model,
-                                        prompt_tokens, output_tokens, total_tokens, cost_usd, success, status, cache_hit)
-                                        VALUES($t,$d,$p,$sv,$m,$pt,$ot,$tt,$c,$s,$st,$ch);";
+                                        prompt_tokens, output_tokens, total_tokens, cost_usd, success, status, cache_hit, duration_ms)
+                                        VALUES($t,$d,$p,$sv,$m,$pt,$ot,$tt,$c,$s,$st,$ch,$dm);";
                     cmd.Parameters.AddWithValue("$t", e.Time.ToString("o"));
                     cmd.Parameters.AddWithValue("$d", e.Time.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("$p", profile);
@@ -129,6 +134,7 @@ namespace RSTGameTranslation
                     cmd.Parameters.AddWithValue("$s", e.Success ? 1 : 0);
                     cmd.Parameters.AddWithValue("$st", e.Status);
                     cmd.Parameters.AddWithValue("$ch", e.CacheHit ? 1 : 0);
+                    cmd.Parameters.AddWithValue("$dm", e.DurationMs);
                     cmd.ExecuteNonQuery();
                 }
                 catch (Exception ex) { Console.WriteLine($"[DB] InsertRequestLog failed: {ex.Message}"); }

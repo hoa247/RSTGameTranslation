@@ -726,6 +726,21 @@ namespace RSTGameTranslation
             _loadingSpinnerTimer?.Stop();
         }
 
+        // Show how many keys are being raced in parallel under the "Đang dịch..." spinner
+        // (hedged Gemini translation). count &lt;= 1 just shows the service name.
+        public void SetLoadingParallelCount(int count)
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(() => SetLoadingParallelCount(count)); return; }
+            try
+            {
+                if (cbLoadingSub == null) return;
+                cbLoadingSub.Text = count > 1
+                    ? $"{count} luồng"
+                    : ConfigManager.Instance.GetCurrentTranslationService();
+            }
+            catch { }
+        }
+
         // Reflect the app's running state on the ChatBox Start/Stop button so the user can
         // control translation from here without opening the main app window.
         private void UpdateStartStopButton()
@@ -853,6 +868,14 @@ namespace RSTGameTranslation
         // The header WrapPanel can grow to multiple rows; keep the chat content and the
         // toggle-borders button below it by tracking the header's actual height.
         private void HeaderBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateContentMarginForHeader();
+        }
+
+        // Push the content (and overlays) below the header using the header's REAL height.
+        // The toolbar is a WrapPanel that flows onto multiple rows, so the header height is
+        // dynamic - a hardcoded top margin makes the menu overlap the text when it wraps.
+        private void UpdateContentMarginForHeader()
         {
             try
             {
@@ -1809,9 +1832,11 @@ namespace RSTGameTranslation
                     translationStatusPanel.Visibility = Visibility.Visible;
                 }
                 
-                // Adjust scrollview margin
-                chatScrollViewer.Margin = new Thickness(0, 28, 0, 30);
-                
+                // Re-show the header, then push content below its REAL (possibly multi-row)
+                // height once layout has run - a fixed 28px made the wrapped menu overlap the text.
+                Dispatcher.BeginInvoke(new Action(UpdateContentMarginForHeader),
+                    System.Windows.Threading.DispatcherPriority.Loaded);
+
                 // Update icon
                 toggleBordersIcon.Data = Geometry.Parse("M 4,2 L 12,2 L 12,6 L 4,6 Z M 4,10 L 12,10 L 12,14 L 4,14 Z");
                 

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RSTGameTranslation
@@ -54,6 +55,51 @@ namespace RSTGameTranslation
             return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
         }
         
+        /// <summary>
+        /// Quick liveness check for a Groq API key: sends a tiny request and reports whether it
+        /// works. Never retries or switches keys. Used by the "Test" button so the user can verify
+        /// a key (and model availability) without waiting on a stuck translation.
+        /// </summary>
+        public static async Task<(bool alive, string status)> ValidateKeyAsync(string apiKey, string model)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey)) return (false, "Empty API key");
+            if (string.IsNullOrWhiteSpace(model)) model = "openai/gpt-oss-120b";
+
+            try
+            {
+                var body = new
+                {
+                    model,
+                    messages = new[] { new { role = "user", content = "ping" } },
+                    max_tokens = 1
+                };
+                string json = JsonSerializer.Serialize(body);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Mirror TranslateAsync's header handling (key in the shared client's default
+                // headers) to avoid a duplicate Authorization header, and cap the wait at 15s.
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                HttpResponseMessage response = await _httpClient.PostAsync(
+                    "https://api.groq.com/openai/v1/chat/completions", content, cts.Token);
+                if (response.IsSuccessStatusCode) return (true, "OK");
+
+                string errorBody = await response.Content.ReadAsStringAsync();
+                string detail = errorBody.Length > 200 ? errorBody.Substring(0, 200) : errorBody;
+                return (false, $"HTTP {(int)response.StatusCode}: {detail}");
+            }
+            catch (OperationCanceledException)
+            {
+                return (false, "Timeout (15s) - endpoint không phản hồi.");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         /// <summary>
         /// Translate text using the Groq API
         /// </summary>

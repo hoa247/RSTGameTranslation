@@ -1054,6 +1054,7 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <PasswordBox x:Name="geminiApiKeyPasswordBox" Grid.Row="0"
                                              VerticalAlignment="Top" Margin="0,0,0,2" 
@@ -1069,6 +1070,23 @@
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GeminiApiLink_Click">https://ai.google.dev/tutorials/setup</Hyperlink>
                                     </TextBlock>
+                                    <!-- Hedged translation: race N keys, take the fastest result (beats Gemini's latency spikes) -->
+                                    <StackPanel x:Name="geminiParallelPanel" Grid.Row="3" Orientation="Horizontal" Margin="0,2,0,4">
+                                        <TextBlock Text="Số key dịch song song:" VerticalAlignment="Center" FontSize="11" Margin="0,0,6,0"
+                                                   ToolTip="Gửi nhiều key cùng lúc, lấy kết quả nhanh nhất. 1 = tắt. Tốn quota gấp N lần."/>
+                                        <ComboBox x:Name="geminiParallelKeysComboBox" Width="55"
+                                                  SelectionChanged="GeminiParallelKeysComboBox_SelectionChanged">
+                                            <ComboBoxItem Content="1"/>
+                                            <ComboBoxItem Content="2"/>
+                                            <ComboBoxItem Content="3"/>
+                                            <ComboBoxItem Content="4"/>
+                                            <ComboBoxItem Content="5"/>
+                                        </ComboBox>
+                                        <TextBlock Text="Timeout (giây):" VerticalAlignment="Center" FontSize="11" Margin="14,0,6,0"
+                                                   ToolTip="Quá thời gian này thì hủy request, tính là lỗi và thử lại. 3-180 giây."/>
+                                        <TextBox x:Name="geminiTimeoutTextBox" Width="45" VerticalAlignment="Center"
+                                                 LostFocus="GeminiTimeoutTextBox_LostFocus"/>
+                                    </StackPanel>
                                 </Grid>
 
                                 <!-- Groq API Key - Only visible when Groq is selected -->
@@ -1088,6 +1106,8 @@
                                              Click="ViewApiKeysButton_Click" Tag="Groq" Width="70"/>
                                     <Button x:Name="SaveGroqKeysButton" Content="{Binding Source={x:Static local:LocalizationManager.Instance}, Path=Strings[Btn_SaveKeys]}" Grid.Row="1" Tag="Groq"
                                             HorizontalAlignment="Left" Width="70" Click="SaveApiKeysButton_Click" />
+                                    <Button x:Name="TestGroqKeyButton" Content="Test" Grid.Row="1" Tag="Groq"
+                                            HorizontalAlignment="Center" Width="70" Click="TestApiKeyButton_Click" />
                                     <TextBlock x:Name="groqApiKeyHelpText" Grid.Row="2" TextWrapping="Wrap" Margin="0,2,0,5" FontSize="11">
                                         <Run>Get API key from </Run>
                                         <Hyperlink Click="GroqApiLink_Click">https://console.groq.com/keys</Hyperlink>

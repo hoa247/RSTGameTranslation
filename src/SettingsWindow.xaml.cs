@@ -757,6 +757,39 @@ namespace RSTGameTranslation
             var button = sender as System.Windows.Controls.Button;
             string serviceType = (button?.Tag as string) ?? "Gemini";
 
+            // Groq: verify the key (and that the chosen model is available on this account).
+            if (serviceType == "Groq")
+            {
+                string groqKey = groqApiKeyPasswordBox.Password.Trim();
+                if (string.IsNullOrEmpty(groqKey))
+                    groqKey = ConfigManager.Instance.GetGroqApiKey();
+                if (string.IsNullOrEmpty(groqKey))
+                {
+                    MessageBox.Show(LocalizationManager.Instance.Strings["Msg_PleaseEnterApiKey"],
+                        "Test API Key", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string groqModel = ConfigManager.Instance.GetGroqModel();
+                string? groqOriginal = button?.Content as string;
+                if (button != null) { button.IsEnabled = false; button.Content = "..."; }
+                try
+                {
+                    var (ok, groqStatus) = await GroqTranslationService.ValidateKeyAsync(groqKey, groqModel);
+                    if (ok)
+                        MessageBox.Show($"API key is alive and working.\nModel: {groqModel}", "Test API Key",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    else
+                        MessageBox.Show($"API key is NOT working.\n\n{groqStatus}", "Test API Key",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    if (button != null) { button.IsEnabled = true; button.Content = groqOriginal ?? "Test"; }
+                }
+                return;
+            }
+
             if (serviceType != "Gemini")
             {
                 MessageBox.Show($"Test not supported for {serviceType} yet.", "Test API Key",
@@ -793,6 +826,35 @@ namespace RSTGameTranslation
             {
                 if (button != null) { button.IsEnabled = true; button.Content = originalContent ?? "Test"; }
             }
+        }
+
+        // Save the number of Gemini keys to race in parallel (hedged translation).
+        private void GeminiParallelKeysComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                if (geminiParallelKeysComboBox.SelectedItem is ComboBoxItem item &&
+                    int.TryParse(item.Content?.ToString(), out int count))
+                {
+                    ConfigManager.Instance.SetGeminiParallelKeys(count);
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"Error saving Gemini parallel keys: {ex.Message}"); }
+        }
+
+        // Save the per-request Gemini timeout (seconds). Invalid input reverts to the stored value.
+        private void GeminiTimeoutTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            try
+            {
+                if (int.TryParse(geminiTimeoutTextBox.Text.Trim(), out int sec))
+                    ConfigManager.Instance.SetGeminiRequestTimeoutSec(sec);
+                // Reflect the clamped/normalized value back into the box.
+                geminiTimeoutTextBox.Text = ConfigManager.Instance.GetGeminiRequestTimeoutSec().ToString();
+            }
+            catch (Exception ex) { Console.WriteLine($"Error saving Gemini timeout: {ex.Message}"); }
         }
 
         // Handler for application-level keyboard shortcuts
@@ -1174,6 +1236,17 @@ namespace RSTGameTranslation
 
             // Initialize API key for Gemini
             geminiApiKeyPasswordBox.Password = ConfigManager.Instance.GetGeminiApiKey();
+            // Initialize the "parallel keys" selector (hedged translation)
+            int parallelKeys = ConfigManager.Instance.GetGeminiParallelKeys();
+            foreach (ComboBoxItem item in geminiParallelKeysComboBox.Items)
+            {
+                if (item.Content?.ToString() == parallelKeys.ToString())
+                {
+                    geminiParallelKeysComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+            geminiTimeoutTextBox.Text = ConfigManager.Instance.GetGeminiRequestTimeoutSec().ToString();
             // Initialize API key for Custom API
             customApiKeyPasswordBox.Password = ConfigManager.Instance.GetCustomApiKey();
             // Initialize API key for Groq
@@ -2060,6 +2133,10 @@ namespace RSTGameTranslation
                 geminiModelGrid.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
                 SaveGeminiKeysButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                // Was missing: the Gemini Test button leaked onto other services (e.g. Groq),
+                // overlapping their Save button. Hide it unless Gemini is selected.
+                TestGeminiKeyButton.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
+                geminiParallelPanel.Visibility = isGeminiSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Custom API-specific settings
                 customApiKeyLabel.Visibility = isCustomApiSelected ? Visibility.Visible : Visibility.Collapsed;
@@ -2082,6 +2159,7 @@ namespace RSTGameTranslation
                 groqModelGrid.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
                 viewGroqKeysButton.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
                 SaveGroqKeysButton.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
+                TestGroqKeyButton.Visibility = isGroqSelected ? Visibility.Visible : Visibility.Collapsed;
 
                 // Show/hide Mistral-specific settings
                 mistralApiKeyLabel.Visibility = isMistralSelected ? Visibility.Visible : Visibility.Collapsed;
