@@ -38,6 +38,9 @@ namespace RSTGameTranslation
         public event EventHandler? SplashClosed;
         
         public const double CurrentVersion = 5.5;
+        // Disabled on this fork: do NOT check/pull the upstream repo's releases. Flip to true
+        // (and point VersionCheckerUrl at your own repo) to re-enable auto-update.
+        private static readonly bool AutoUpdateEnabled = false;
         private const string VersionCheckerUrl = "https://raw.githubusercontent.com/thanhkeke97/RSTGameTranslation/refs/heads/main/media/latest_version_checker.json";
 
         private class VersionInfo
@@ -273,6 +276,13 @@ namespace RSTGameTranslation
 
         private async void CheckForUpdates()
         {
+            // Fork: auto-update is off, so skip the upstream version check and just close the splash.
+            if (!AutoUpdateEnabled)
+            {
+                CloseSplashAfterDelay(2000);
+                return;
+            }
+
             try
             {
                 VersionInfo? versionInfo = await FetchVersionInfo();
